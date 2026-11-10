@@ -57,9 +57,10 @@
       </button>
       <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-regular fa-file-excel"></i>
-        <span>Nhập Excel</span>
+        <span>Nhập Excel / KML</span>
       </button>
-      <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .csv" onchange="handleExcelUpload(event)" />
+      <!-- Hỗ trợ cả .xlsx, .xls, .csv và cả file gốc .kml -->
+      <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls, .csv, .kml" onchange="handleUniversalFileUpload(event)" />
     </div>
   </header>
 
@@ -200,7 +201,7 @@
             <div class="pt-2 flex items-center justify-between">
               <button id="card-edit-btn" class="text-blue-600 hover:text-blue-700 font-semibold text-xs flex items-center space-x-1">
                 <i class="fa-solid fa-pen-to-square"></i>
-                <span>Chỉnh sửa số liệu</span>
+                <span>Sửa</span>
               </button>
               <a id="card-google-maps-btn" href="#" target="_blank" rel="noopener noreferrer" 
                  class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center space-x-1.5 shadow-sm transition">
@@ -213,20 +214,17 @@
       </main>
     </div>
 
-    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU (CÓ CỘT THAO TÁC SỬA / XÓA) -->
+    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU -->
     <div id="view-data" class="hidden flex-1 bg-white flex flex-col p-6 overflow-y-auto">
       <div class="flex items-center justify-between pb-4 border-b border-gray-200">
         <div>
           <h2 class="text-lg font-bold text-gray-800">Quản lý & Cập nhật số liệu bưu cục (25 Tỉnh Miền Bắc)</h2>
-          <p class="text-xs text-gray-500">Mọi chỉnh sửa, thêm mới hoặc xóa đều được tự động lưu vĩnh viễn trên máy của bạn</p>
+          <p class="text-xs text-gray-500">Mọi chỉnh sửa, thêm mới hoặc xóa đều được tự động lưu vĩnh viễn trên máy</p>
         </div>
         <div class="flex items-center space-x-3">
           <button onclick="exportCurrentDataToCSV()" class="px-3.5 py-1.5 border border-green-600 text-green-700 hover:bg-green-50 rounded text-xs font-semibold flex items-center space-x-1">
             <i class="fa-solid fa-file-excel"></i>
-            <span>Xuất file CSV hiện tại</span>
-          </button>
-          <button onclick="downloadTemplateCSV()" class="px-3.5 py-1.5 border border-gray-300 rounded text-xs font-semibold text-gray-700 hover:bg-gray-50">
-            <i class="fa-solid fa-download mr-1"></i> Tải file mẫu CSV
+            <span>Xuất file CSV</span>
           </button>
           <button onclick="openNewOfficeModal()" class="px-3.5 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700">
             <i class="fa-solid fa-plus mr-1"></i> Thêm bưu cục mới
@@ -234,7 +232,7 @@
         </div>
       </div>
 
-      <!-- Bảng danh sách bưu cục có cột thao tác -->
+      <!-- Bảng danh sách bưu cục -->
       <div class="mt-4 overflow-x-auto flex-1">
         <table class="w-full text-left text-xs border border-gray-200">
           <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
@@ -257,7 +255,7 @@
     </div>
   </div>
 
-  <!-- MODAL 1: BỔ SUNG SỐ LIỆU TỔNG CHO HÃNG / TỈNH -->
+  <!-- MODAL 1: BỔ SUNG SỐ LIỆU TỔNG -->
   <div id="modal-metric" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
       <div class="flex items-center justify-between pb-3 border-b border-gray-200">
@@ -270,10 +268,10 @@
           <input type="text" id="metric-modal-province" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-1.5 font-bold text-gray-700">
         </div>
         <div>
-          <label class="block font-semibold text-gray-700 mb-1">Đơn vị vận chuyển (Hãng):</label>
-          <select id="metric-modal-carrier" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-1 focus:ring-red-500">
+          <label class="block font-semibold text-gray-700 mb-1">Hãng vận chuyển:</label>
+          <select id="metric-modal-carrier" class="w-full border border-gray-300 rounded px-3 py-1.5">
             <option value="J&T">J&T Express</option>
-            <option value="GHN">Giao Hàng Nhanh (GHN)</option>
+            <option value="GHN">GHN</option>
             <option value="Viettel Post">Viettel Post</option>
             <option value="SPX">SPX Express</option>
           </select>
@@ -281,11 +279,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Sản lượng (Đơn/ngày):</label>
-            <input type="number" id="metric-modal-orders" placeholder="Ví dụ: 12500" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-1 focus:ring-red-500">
+            <input type="number" id="metric-modal-orders" placeholder="12500" class="w-full border border-gray-300 rounded px-3 py-1.5">
           </div>
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Số lượng xe:</label>
-            <input type="number" id="metric-modal-trucks" placeholder="Ví dụ: 18" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-1 focus:ring-red-500">
+            <input type="number" id="metric-modal-trucks" placeholder="18" class="w-full border border-gray-300 rounded px-3 py-1.5">
           </div>
         </div>
         <div>
@@ -294,13 +292,13 @@
         </div>
       </div>
       <div class="mt-6 flex justify-end space-x-2">
-        <button onclick="closeModal('modal-metric')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">Hủy</button>
-        <button onclick="saveMetricModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700">Lưu số liệu</button>
+        <button onclick="closeModal('modal-metric')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
+        <button onclick="saveMetricModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu số liệu</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 2: THÊM HOẶC CHỈNH SỬA CHI TIẾT BƯU CỤC -->
+  <!-- MODAL 2: THÊM / SỬA BƯU CỤC -->
   <div id="modal-office" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
       <div class="flex items-center justify-between pb-3 border-b border-gray-200">
@@ -358,19 +356,19 @@
         </div>
       </div>
       <div class="mt-6 flex justify-end space-x-2">
-        <button onclick="closeModal('modal-office')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">Hủy</button>
-        <button onclick="saveOfficeModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700">Lưu thông tin</button>
+        <button onclick="closeModal('modal-office')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
+        <button onclick="saveOfficeModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu thông tin</button>
       </div>
     </div>
   </div>
 
-  <!-- JS Dependencies -->
+  <!-- Thư viện bản đồ, đọc CSV & Đọc Excel XLSX chuẩn quốc tế -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <script>
-    // --- 1. ĐỊNH NGHĨA 3 VÙNG MỚI (25 TỈNH) ---
+    // --- 1. ĐỊNH NGHĨA 3 VÙNG (25 TỈNH) ---
     const NORTH_REGIONS = {
       "Hà Nội": [
         { id: 'HNI', name: 'Hà Nội', center: [21.0285, 105.8542], zoom: 11, bbox: [[20.55, 105.35], [21.35, 106.05]] },
@@ -407,6 +405,16 @@
 
     const ALL_PROVINCES = [];
     const VALID_PROVINCE_CODES = new Set();
+    const PROV_MAPPING = {
+      'TBH': 'TBH', 'NĐH': 'NDH', 'NDH': 'NDH', 'QNH': 'QNH',
+      'HYN': 'HYN', 'BNH': 'BNI', 'BNI': 'BNI', 'LCI': 'LCA',
+      'LCA': 'LCA', 'HNI': 'HNI', 'VPC': 'VPH', 'VPH': 'VPH',
+      'HBH': 'HBH', 'SLA': 'SLA', 'DBN': 'DBN', 'LCH': 'LCH',
+      'YBI': 'YBI', 'HGI': 'HGI', 'TQU': 'TQU', 'PTO': 'PTO',
+      'TNN': 'TNN', 'BKA': 'BKA', 'CBA': 'CBA', 'LSN': 'LSN',
+      'BGI': 'BGI', 'HPG': 'HPG', 'HDU': 'HDU', 'HNA': 'HNA', 'NBH': 'NBH'
+    };
+
     Object.values(NORTH_REGIONS).forEach(list => list.forEach(p => {
       ALL_PROVINCES.push(p);
       VALID_PROVINCE_CODES.add(p.id);
@@ -419,19 +427,8 @@
       'SPX': { color: '#F05326', class: 'pin-spx', label: 'SPX' }
     };
 
-    // --- 2. QUẢN LÝ DỮ LIỆU & LOCALSTORAGE ---
-    const DEFAULT_DATA = [
-      { id: '1', code: 'JT-HY01', name: 'J&T Văn Giang', carrier: 'J&T', provinceId: 'HYN', lat: 20.785, lng: 105.955, address: 'Văn Giang, Hưng Yên', dailyOrders: 1250, trucks: 2 },
-      { id: '2', code: 'GHN-HN01', name: 'GHN Bưu cục Cầu Giấy', carrier: 'GHN', provinceId: 'HNI', lat: 21.033, lng: 105.789, address: 'Dịch Vọng Hậu, Cầu Giấy, Hà Nội', dailyOrders: 4200, trucks: 5 },
-      { id: '3', code: 'VT-HP01', name: 'Viettel Post Ngô Quyền', carrier: 'Viettel Post', provinceId: 'HPG', lat: 20.865, lng: 106.690, address: 'Lê Lợi, Ngô Quyền, Hải Phòng', dailyOrders: null, trucks: 3 },
-      { id: '4', code: 'SPX-QN01', name: 'SPX Express Hạ Long', carrier: 'SPX', provinceId: 'QNH', lat: 20.950, lng: 107.080, address: 'Bãi Cháy, TP Hạ Long, Quảng Ninh', dailyOrders: 2300, trucks: null },
-      { id: '5', code: 'JT-SL01', name: 'J&T Sơn La Trung Tâm', carrier: 'J&T', provinceId: 'SLA', lat: 21.328, lng: 103.914, address: 'P. Tô Hiệu, TP Sơn La', dailyOrders: 650, trucks: 1 },
-      { id: '6', code: 'VT-HY01', name: 'Viettel Post Khoái Châu', carrier: 'Viettel Post', provinceId: 'HYN', lat: 20.680, lng: 105.980, address: 'Khoái Châu, Hưng Yên', dailyOrders: null, trucks: 3 },
-      { id: '7', code: 'SPX-HY01', name: 'SPX Express Ân Thi', carrier: 'SPX', provinceId: 'HYN', lat: 20.615, lng: 106.100, address: 'Ân Thi, Hưng Yên', dailyOrders: 2100, trucks: null }
-    ];
-
-    // Đọc từ localStorage nếu có, nếu chưa thì lấy dữ liệu mặc định
-    let postOfficesData = JSON.parse(localStorage.getItem('saved_post_offices')) || DEFAULT_DATA;
+    // --- 2. DỮ LIỆU & LOCALSTORAGE ---
+    let postOfficesData = JSON.parse(localStorage.getItem('saved_post_offices')) || [];
 
     let provinceSummaryMetrics = JSON.parse(localStorage.getItem('saved_metrics')) || {
       'HYN': {
@@ -518,9 +515,7 @@
       a.classList.toggle('rotate-180');
     }
 
-    function filterProvinces(term) {
-      renderAccordion(term);
-    }
+    function filterProvinces(term) { renderAccordion(term); }
 
     // --- 5. TƯƠNG TÁC CHỌN TỈNH VÀ NỔI BẬT ĐỊA BÀN ---
     function selectProvince(provId) {
@@ -574,7 +569,7 @@
       pointsToDisplay.forEach(po => {
         if (!po.lat || !po.lng) return;
 
-        const conf = CARRIERS[po.carrier];
+        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
         const icon = L.divIcon({
           className: 'custom-leaflet-pin',
           html: `<div class="custom-pin ${conf.class}">${conf.label}</div>`,
@@ -672,15 +667,12 @@
       }).join('');
     }
 
-    function updateView() {
-      renderStats();
-    }
+    function updateView() { renderStats(); }
 
-    // --- 7. CHI TIẾT BƯU CỤC & NÚT SỬA NHANH ---
     function showOfficeDetail(po) {
       const card = document.getElementById('office-detail-card');
       const badge = document.getElementById('card-badge');
-      const conf = CARRIERS[po.carrier];
+      const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
 
       badge.style.backgroundColor = conf.color;
       badge.innerText = conf.label;
@@ -707,7 +699,6 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 8. CÁC HÀM SỬA / XÓA BƯU CỤC TRÊN BẢNG VÀ TRÊN CARD ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -774,7 +765,6 @@
       const hasCoord = !isNaN(lat) && !isNaN(lng);
 
       if (editId) {
-        // Cập nhật bưu cục cũ
         const index = postOfficesData.findIndex(item => item.id == editId);
         if (index !== -1) {
           postOfficesData[index] = {
@@ -788,7 +778,6 @@
           };
         }
       } else {
-        // Thêm mới
         postOfficesData.push({
           id: Date.now().toString(),
           code, name, carrier, provinceId,
@@ -809,7 +798,6 @@
       closeOfficeCard();
     }
 
-    // --- 9. BỔ SUNG SỐ LIỆU TỔNG CHO HÃNG ---
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
@@ -848,7 +836,6 @@
       renderStats();
     }
 
-    // --- 10. RENDER BẢNG DỮ LIỆU CÓ NÚT SỬA / XÓA ---
     function setTab(tab) {
       if (tab === 'map') {
         document.getElementById('view-map').classList.remove('hidden');
@@ -895,7 +882,6 @@
       }).join('');
     }
 
-    // --- 11. XUẤT CSV & NHẬP EXCEL ---
     function exportCurrentDataToCSV() {
       let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe\n";
       postOfficesData.forEach(po => {
@@ -911,70 +897,172 @@
       document.body.removeChild(a);
     }
 
-    function handleExcelUpload(event) {
+    // --- 11. BỘ NHẬP FILE ĐA NĂNG (ĐỌC ĐƯỢC CẢ .XLSX, .CSV VÀ .KML GỐC) ---
+    function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function(res) {
-          let accepted = 0;
-          let rejectedOutOfBounds = 0;
+      const fileName = file.name.toLowerCase();
 
-          res.data.forEach(row => {
-            const code = row['Mã bưu cục'] || row['code'];
-            const carrier = row['Hãng'] || row['carrier'];
-            const provId = (row['Mã tỉnh'] || row['province_id'] || '').toUpperCase();
-            const lat = parseFloat(row['Vĩ độ'] || row['lat']);
-            const lng = parseFloat(row['Kinh độ'] || row['lng']);
+      // TRƯỜNG HỢP 1: NGƯỜI DÙNG CHỌN THẲNG FILE .KML
+      if (fileName.endsWith('.kml')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          parseAndImportKML(e.target.result);
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+        return;
+      }
 
-            if (!VALID_PROVINCE_CODES.has(provId)) {
-              rejectedOutOfBounds++;
-              return;
-            }
-
-            if (code && carrier) {
-              const hasCoord = !isNaN(lat) && !isNaN(lng);
-              postOfficesData.push({
-                id: Date.now().toString() + Math.random().toString().slice(2,5),
-                code: code,
-                name: row['Tên bưu cục'] || code,
-                carrier: carrier,
-                provinceId: provId,
-                lat: hasCoord ? lat : null,
-                lng: hasCoord ? lng : null,
-                address: row['Địa chỉ'] || '',
-                dailyOrders: row['Đơn/ngày'] ? parseFloat(row['Đơn/ngày']) : null,
-                trucks: row['Số xe'] ? parseInt(row['Số xe']) : null
-              });
-              accepted++;
-            }
-          });
-
-          persistData();
-          alert(`Nhập file hoàn tất!\n- Hợp lệ: ${accepted}\n- Bị loại (ngoài 25 tỉnh miền Bắc): ${rejectedOutOfBounds}`);
-          renderMarkers();
-          renderStats();
-          renderDataTable();
-          event.target.value = '';
+      // TRƯỜNG HỢP 2: FILE EXCEL (.XLSX, .XLS) HOẶC .CSV
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+          processImportedRows(rawRows);
+        } catch (err) {
+          alert("Lỗi đọc file Excel: " + err.message);
         }
-      });
+        event.target.value = '';
+      };
+      reader.readAsArrayBuffer(file);
     }
 
-    function downloadTemplateCSV() {
-      const csvContent = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe\n"
-        + "JT-HY01,Bưu cục Mỹ Hào,J&T,HYN,20.685,106.055,TX Mỹ Hào Hưng Yên,1200,2\n"
-        + "GHN-HN02,Bưu cục Hoàn Kiếm,GHN,HNI,21.028,105.854,Quận Hoàn Kiếm Hà Nội,3500,4\n";
-      
-      const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "Mau_Nhap_Buu_Cuc_Mien_Bac.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // Xử lý dữ liệu từ bảng Excel/CSV
+    function processImportedRows(rows) {
+      let accepted = 0;
+      let rejectedOutOfBounds = 0;
+
+      rows.forEach((row, idx) => {
+        // Chuẩn hóa tìm key (không phân biệt hoa thường, khoảng trắng)
+        const getField = (candidates) => {
+          for (let k of Object.keys(row)) {
+            const cleanK = k.trim().toLowerCase();
+            for (let c of candidates) {
+              if (cleanK === c.toLowerCase() || cleanK.includes(c.toLowerCase())) return row[k];
+            }
+          }
+          return '';
+        };
+
+        const code = String(getField(['Mã bưu cục', 'mã ttnk', 'code', 'mã']) || `BC-${idx+1}`).trim();
+        const name = String(getField(['Tên bưu cục', 'name', 'tên']) || code).trim();
+        const carrier = String(getField(['Hãng', 'carrier']) || 'J&T').trim();
+        let rawProv = String(getField(['Mã tỉnh', 'province_id', 'tỉnh']) || '').trim().toUpperCase();
+
+        // Tự đoán mã tỉnh từ tên bưu cục nếu cột tỉnh bị trống
+        if (!rawProv) {
+          const m = name.match(/\(([A-Za-zĐđ]+)\)/);
+          if (m && PROV_MAPPING[m[1].toUpperCase()]) rawProv = PROV_MAPPING[m[1].toUpperCase()];
+        } else if (PROV_MAPPING[rawProv]) {
+          rawProv = PROV_MAPPING[rawProv];
+        }
+
+        const latVal = parseFloat(getField(['Vĩ độ', 'lat', 'latitude']));
+        const lngVal = parseFloat(getField(['Kinh độ', 'lng', 'longitude']));
+        const address = String(getField(['Địa chỉ', 'address']) || '').trim();
+        const ordersVal = parseFloat(String(getField(['Đơn/ngày', 'sản lượng', 'orders'])).replace(/,/g, ''));
+        const trucksVal = parseInt(getField(['Số xe', 'trucks']));
+
+        if (!VALID_PROVINCE_CODES.has(rawProv)) {
+          rejectedOutOfBounds++;
+          return;
+        }
+
+        const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
+
+        postOfficesData.push({
+          id: Date.now().toString() + Math.random().toString().slice(2, 6),
+          code: code,
+          name: name,
+          carrier: carrier,
+          provinceId: rawProv,
+          lat: hasCoord ? latVal : null,
+          lng: hasCoord ? lngVal : null,
+          address: address,
+          dailyOrders: !isNaN(ordersVal) ? ordersVal : null,
+          trucks: !isNaN(trucksVal) ? trucksVal : null
+        });
+        accepted++;
+      });
+
+      persistData();
+      alert(`KẾT QUẢ NHẬP FILE:\n- Hợp lệ đưa vào bản đồ: ${accepted} bưu cục\n- Bị loại (ngoài 25 tỉnh miền Bắc): ${rejectedOutOfBounds}`);
+      renderMarkers();
+      renderStats();
+      renderDataTable();
+    }
+
+    // Đọc và bóc tách trực tiếp file KML
+    function parseAndImportKML(kmlText) {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(kmlText, "text/xml");
+      const placemarks = xmlDoc.getElementsByTagName("Placemark");
+
+      if (placemarks.length === 0) {
+        alert("Lỗi: Không tìm thấy điểm bưu cục nào trong file KML!");
+        return;
+      }
+
+      let accepted = 0;
+      for (let i = 0; i < placemarks.length; i++) {
+        const p = placemarks[i];
+        const name = p.getElementsByTagName("name")[0]?.textContent.trim() || `BC-${i+1}`;
+        const desc = p.getElementsByTagName("description")[0]?.textContent || "";
+
+        let code = desc.match(/Mã TTNK(?:\s*网点)?:\s*([A-Za-z0-9_-]+)/i)?.[1] || name.match(/([0-9]{3}[A-Z][0-9]{2})/)?.[1] || `BC-${i+1}`;
+        let provId = "HNI";
+        const provMatch = name.match(/\(([A-Za-zĐđ]+)\)/);
+        if (provMatch && PROV_MAPPING[provMatch[1].toUpperCase()]) {
+          provId = PROV_MAPPING[provMatch[1].toUpperCase()];
+        }
+
+        let lat = null, lng = null;
+        const dinhVi = desc.match(/Định vị:\s*([^<\n\r]+)/i)?.[1];
+        if (dinhVi) {
+          const dec = dinhVi.match(/([0-9]{2}\.[0-9]+)[,\s]+([1][0][0-9]{1}\.[0-9]+)/);
+          if (dec) {
+            lat = parseFloat(dec[1]);
+            lng = parseFloat(dec[2]);
+          }
+        }
+        if (!lat) {
+          const coords = p.getElementsByTagName("coordinates")[0]?.textContent.trim().split(/[\s,]+/);
+          if (coords && coords.length >= 2) {
+            lng = parseFloat(coords[0]);
+            lat = parseFloat(coords[1]);
+          }
+        }
+
+        const address = desc.match(/Địa chỉ(?:\s*地址)?:\s*([^<]+)/i)?.[1]?.trim() || "";
+        const orders = parseFloat(desc.match(/TB đơn[^:]*:\s*([0-9,.]+)/i)?.[1]?.replace(/,/g, ''));
+
+        if (VALID_PROVINCE_CODES.has(provId)) {
+          postOfficesData.push({
+            id: Date.now().toString() + Math.random().toString().slice(2, 6),
+            code: code,
+            name: name,
+            carrier: 'J&T',
+            provinceId: provId,
+            lat: lat,
+            lng: lng,
+            address: address,
+            dailyOrders: !isNaN(orders) ? orders : null,
+            trucks: null
+          });
+          accepted++;
+        }
+      }
+
+      persistData();
+      alert(`ĐÃ XỬ LÝ XONG FILE KML GỐC!\n- Đã nạp thành công: ${accepted} bưu cục lên bản đồ.`);
+      renderMarkers();
+      renderStats();
+      renderDataTable();
     }
 
     window.onload = initMap;
