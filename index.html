@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc</title>
+  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc (Cloud Online)</title>
   
   <!-- CSS Frameworks -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -60,7 +60,7 @@
         <i class="fa-solid fa-file-arrow-down text-blue-600"></i>
         <span>File mẫu</span>
       </button>
-      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
+      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-regular fa-file-excel"></i>
         <span>Nhập Excel/KML</span>
       </button>
@@ -73,32 +73,25 @@
 
     <!-- VIEW 1: BẢN ĐỒ -->
     <div id="view-map" class="flex flex-1 w-full h-full relative">
-      
-      <!-- CỘT BÊN TRÁI: CÓ NÚT THU GỌN / MỞ RỘNG (COLLAPSIBLE SIDEBAR) -->
       <aside id="sidebar-container" class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0 transition-all duration-300 relative">
-        
-        <!-- NÚT ẨN / HIỆN SIDEBAR -->
         <button onclick="toggleSidebar()" id="sidebar-toggle-btn" 
                 class="absolute -right-3.5 top-5 z-30 bg-white border border-gray-300 shadow-md w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 transition"
                 title="Ẩn / Hiện thanh khu vực">
           <i id="sidebar-toggle-icon" class="fa-solid fa-chevron-left text-xs"></i>
         </button>
 
-        <!-- NỘI DUNG TRONG SIDEBAR -->
         <div id="sidebar-content" class="flex flex-col h-full overflow-hidden">
-          
-          <!-- TAB CHỌN: TỈNH / THÀNH HOẶC CỤM VÙNG NHỎ -->
           <div class="flex border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-600">
-            <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white">
+            <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white font-bold">
               25 Tỉnh/Thành
             </button>
-            <button onclick="setSidebarTab('subzones')" id="tab-btn-subzones" class="flex-1 py-2.5 text-center hover:text-red-600 transition flex items-center justify-center space-x-1">
+            <button onclick="setSidebarTab('subzones')" id="tab-btn-subzones" class="flex-1 py-2.5 text-center text-gray-600 hover:text-red-600 transition flex items-center justify-center space-x-1 font-bold">
               <span>Vùng nhỏ (Cụm)</span>
               <span id="subzones-count-badge" class="bg-red-100 text-red-600 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
             </button>
           </div>
 
-          <!-- PHẦN 1: TÌM KIẾM VÀ DANH SÁCH 25 TỈNH -->
+          <!-- TAB 25 TỈNH -->
           <div id="sidebar-panel-provinces" class="flex flex-col flex-1 overflow-hidden">
             <div class="p-3 border-b border-gray-200">
               <div class="relative">
@@ -114,7 +107,7 @@
             <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
           </div>
 
-          <!-- PHẦN 2: QUẢN LÝ VÀ CHỌN CÁC VÙNG NHỎ (CỤM BƯU CỤC) -->
+          <!-- TAB VÙNG NHỎ (CỤM BƯU CỤC) -->
           <div id="sidebar-panel-subzones" class="hidden flex-col flex-1 overflow-hidden p-3">
             <div class="flex items-center justify-between pb-3 border-b border-gray-200">
               <span class="text-xs text-gray-500 font-medium">Khoanh vùng cụm tự chọn:</span>
@@ -123,15 +116,12 @@
                 <span>Tạo vùng nhỏ</span>
               </button>
             </div>
-            <div id="subzones-list" class="overflow-y-auto flex-1 mt-2 space-y-2">
-              <!-- Render danh sách các vùng nhỏ tự tạo -->
-            </div>
+            <div id="subzones-list" class="overflow-y-auto flex-1 mt-2 space-y-2"></div>
           </div>
-
         </div>
       </aside>
 
-      <!-- KHU VỰC TRUNG TÂM: MAP -->
+      <!-- MAP VIEW -->
       <main class="flex-1 relative">
         <div id="map"></div>
 
@@ -140,7 +130,6 @@
           <span>Toàn miền Bắc</span>
         </button>
 
-        <!-- BẢNG THỐNG KÊ GÓC TRÊN BÊN PHẢI -->
         <div class="absolute top-4 right-4 z-[400] w-96 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 p-4">
           <div class="flex items-center justify-between pb-3 border-b border-gray-100">
             <div class="max-w-[210px]">
@@ -179,12 +168,11 @@
             <span class="text-[11px] text-gray-400 font-medium">— : Chưa có dữ liệu</span>
             <button onclick="openNewOfficeModal()" class="text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 bg-red-50/60 px-3 py-1 rounded font-semibold flex items-center space-x-1 transition">
               <i class="fa-solid fa-plus text-[10px]"></i>
-              <span>Thêm bưu cục mới</span>
+              <span>Thêm bưu cục</span>
             </button>
           </div>
         </div>
 
-        <!-- GÓC DƯỚI BÊN TRÁI: BỘ LỌC HÃNG -->
         <div class="absolute bottom-6 left-6 z-[400] bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 p-3.5 w-64 text-xs">
           <div class="font-bold text-gray-800 mb-2">Chú giải bưu cục</div>
           <div class="space-y-2">
@@ -214,7 +202,6 @@
           </div>
         </div>
 
-        <!-- POPUP CHI TIẾT BƯU CỤC -->
         <div id="office-detail-card" class="hidden absolute bottom-6 right-6 z-[400] w-88 bg-white rounded-xl shadow-2xl border border-gray-200 p-4">
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-2.5">
@@ -261,7 +248,7 @@
       </main>
     </div>
 
-    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU -->
+    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU (CÓ BỘ LỌC VÀ LỊCH SỬ NGÀY UP) -->
     <div id="view-data" class="hidden flex-1 bg-white flex flex-col p-6 overflow-y-auto">
       <div class="flex items-center justify-between pb-4 border-b border-gray-200">
         <div>
@@ -288,9 +275,51 @@
         </div>
       </div>
 
-      <div class="mt-4 overflow-x-auto flex-1">
+      <!-- BỘ LỌC DỮ LIỆU TỨC THÌ -->
+      <div class="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-3.5 grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Tìm kiếm nhanh:</label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-gray-400"></i>
+            <input type="text" id="filter-table-keyword" oninput="renderDataTable()" placeholder="Mã BC, tên bưu cục..." 
+                   class="w-full bg-white border border-gray-300 rounded-lg pl-8 pr-2.5 py-1.5 focus:ring-1 focus:ring-red-500">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Lọc theo Tỉnh/Thành:</label>
+          <select id="filter-table-province" onchange="renderDataTable()" class="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5">
+            <option value="">-- Tất cả 25 tỉnh --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Lọc theo Hãng:</label>
+          <select id="filter-table-carrier" onchange="renderDataTable()" class="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5">
+            <option value="">-- Tất cả hãng --</option>
+            <option value="J&T">J&T Express</option>
+            <option value="GHN">GHN</option>
+            <option value="Viettel Post">Viettel Post</option>
+            <option value="SPX">SPX Express</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Trạng thái tọa độ:</label>
+          <select id="filter-table-status" onchange="renderDataTable()" class="w-full bg-white border border-gray-300 rounded-lg px-2.5 py-1.5">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="ACTIVE">Hoạt động (Có tọa độ)</option>
+            <option value="PENDING">Chờ tọa độ (Chưa định vị)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-2.5 flex items-center justify-between text-xs text-gray-500 px-1">
+        <span id="table-record-count" class="font-semibold text-gray-700">Đang hiển thị: 0 bưu cục</span>
+        <button onclick="resetTableFilters()" class="text-blue-600 hover:underline font-semibold">Đặt lại bộ lọc</button>
+      </div>
+
+      <!-- BẢNG DỮ LIỆU CÓ CỘT NGÀY CẬP NHẬT -->
+      <div class="mt-2 overflow-x-auto flex-1">
         <table class="w-full text-left text-xs border border-gray-200">
-          <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+          <thead class="bg-gray-100 text-gray-700 font-bold border-b border-gray-200">
             <tr>
               <th class="p-2.5 border-r">Mã BC</th>
               <th class="p-2.5 border-r">Tên bưu cục</th>
@@ -301,7 +330,8 @@
               <th class="p-2.5 border-r text-right">Số xe</th>
               <th class="p-2.5 border-r text-center">Google Maps</th>
               <th class="p-2.5 border-r text-center">Trạng thái</th>
-              <th class="p-2.5 text-center w-28">Thao tác</th>
+              <th class="p-2.5 border-r text-center">Ngày cập nhật</th>
+              <th class="p-2.5 text-center w-24">Thao tác</th>
             </tr>
           </thead>
           <tbody id="table-data-body" class="divide-y divide-gray-100"></tbody>
@@ -310,7 +340,7 @@
     </div>
   </div>
 
-  <!-- MODAL 1: TẠO VÙNG NHỎ (CỤM BƯU CỤC TỰ CHỌN) -->
+  <!-- MODAL 1: TẠO VÙNG NHỎ (CÓ TÌM KIẾM NHANH BƯU CỤC) -->
   <div id="modal-subzone" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 flex flex-col max-h-[90vh]">
       <div class="flex items-center justify-between pb-3 border-b border-gray-200">
@@ -321,23 +351,36 @@
         <button onclick="closeModal('modal-subzone')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div class="mt-4 space-y-3 text-xs flex-1 overflow-y-auto pr-1">
+      <div class="mt-3.5 space-y-3 text-xs flex-1 overflow-y-auto pr-1">
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Tên vùng nhỏ / Cụm (*):</label>
           <input type="text" id="subzone-name" placeholder="Ví dụ: Cụm Gia Lâm" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-1 focus:ring-red-500">
         </div>
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Thuộc Tỉnh/Thành (*):</label>
-          <select id="subzone-province" onchange="renderOfficesForSubzoneSelect(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5"></select>
+          <select id="subzone-province" onchange="onSubzoneProvinceChange(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5"></select>
         </div>
         
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label class="block font-semibold text-gray-700">Tùy ý chọn bưu cục thuộc cụm này (*):</label>
-            <span id="subzone-selected-count" class="text-[11px] text-red-600 font-bold">Đã chọn: 0</span>
+            <label class="block font-semibold text-gray-700">Tùy ý chọn bưu cục thuộc cụm này:</label>
+            <span id="subzone-selected-count" class="text-[11px] text-red-600 font-bold">Đã chọn: 0 bưu cục</span>
           </div>
-          <div id="subzone-office-picker" class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1.5 bg-gray-50">
-            <!-- Danh sách bưu cục để tích chọn -->
+
+          <!-- Ô TÌM KIẾM BƯU CỤC TRONG MODAL -->
+          <div class="flex items-center space-x-2 mb-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2 text-gray-400 text-[11px]"></i>
+              <input type="text" id="subzone-search-input" oninput="filterSubzoneOffices(this.value)" 
+                     placeholder="Tìm mã hoặc tên bưu cục để tích..." 
+                     class="w-full bg-white border border-gray-300 rounded pl-7 pr-2 py-1 text-xs focus:ring-1 focus:ring-red-500">
+            </div>
+            <button onclick="selectAllFilteredSubzone(true)" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[11px] font-semibold whitespace-nowrap">Chọn hết</button>
+            <button onclick="selectAllFilteredSubzone(false)" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[11px] font-semibold whitespace-nowrap">Bỏ chọn</button>
+          </div>
+
+          <div id="subzone-office-picker" class="border border-gray-200 rounded-lg p-2 max-h-52 overflow-y-auto space-y-1 bg-gray-50">
+            <!-- Danh sách bưu cục -->
           </div>
         </div>
       </div>
@@ -466,14 +509,34 @@
 
     const ALL_PROVINCES = [];
     const VALID_PROVINCE_CODES = new Set();
+    
+    // BỔ SUNG TRỌN VẸN CÁC MÃ VIẾT TẮT NỘI BỘ CỦA J&T VÀ CÁC HÃNG
     const PROV_MAPPING = {
-      'TBH': 'TBH', 'NĐH': 'NDH', 'NDH': 'NDH', 'QNH': 'QNH',
-      'HYN': 'HYN', 'BNH': 'BNI', 'BNI': 'BNI', 'LCI': 'LCA',
-      'LCA': 'LCA', 'HNI': 'HNI', 'VPC': 'VPH', 'VPH': 'VPH',
-      'HBH': 'HBH', 'SLA': 'SLA', 'DBN': 'DBN', 'LCH': 'LCH',
-      'YBI': 'YBI', 'HGI': 'HGI', 'TQU': 'TQU', 'PTO': 'PTO',
-      'TNN': 'TNN', 'BKA': 'BKA', 'CBA': 'CBA', 'LSN': 'LSN',
-      'BGI': 'BGI', 'HPG': 'HPG', 'HDU': 'HDU', 'HNA': 'HNA', 'NBH': 'NBH'
+      'HNI': 'HNI', 'HN': 'HNI',
+      'VPH': 'VPH', 'VPC': 'VPH', 'VP': 'VPH',
+      'BNI': 'BNI', 'BNH': 'BNI', 'BN': 'BNI',
+      'HDU': 'HDU', 'HDG': 'HDU', 'HD': 'HDU',
+      'HPG': 'HPG', 'HP': 'HPG',
+      'NDH': 'NDH', 'NĐH': 'NDH', 'ND': 'NDH',
+      'TBH': 'TBH', 'TB': 'TBH',
+      'NBH': 'NBH', 'NB': 'NBH',
+      'HNA': 'HNA', 'HNM': 'HNA', 'HNAM': 'HNA', // HNM chính là Hà Nam
+      'HYN': 'HYN', 'HY': 'HYN',
+      'QNH': 'QNH', 'QN': 'QNH',
+      'HBH': 'HBH', 'HB': 'HBH',
+      'SLA': 'SLA', 'SL': 'SLA',
+      'DBN': 'DBN', 'ĐBN': 'DBN', 'DB': 'DBN',
+      'LCH': 'LCH', 'LC': 'LCH',
+      'LCA': 'LCA', 'LCI': 'LCA',
+      'YBI': 'YBI', 'YB': 'YBI',
+      'HGI': 'HGI', 'HG': 'HGI',
+      'TQU': 'TQU', 'TQ': 'TQU',
+      'PTO': 'PTO', 'PTH': 'PTO', 'PT': 'PTO', // PTH chính là Phú Thọ
+      'TNN': 'TNN', 'TN': 'TNN',
+      'BKA': 'BKA', 'BK': 'BKA',
+      'CBA': 'CBA', 'CB': 'CBA',
+      'LSN': 'LSN', 'LS': 'LSN',
+      'BGI': 'BGI', 'BGG': 'BGI', 'BG': 'BGI'  // BGG chính là Bắc Giang
     };
 
     Object.values(NORTH_REGIONS).forEach(list => list.forEach(p => {
@@ -490,11 +553,15 @@
 
     let postOfficesData = [];
     let selectedProvinceIds = new Set();
-    let activeSubZone = null; // Cụm vùng nhỏ đang chọn
-    let customSubZones = JSON.parse(localStorage.getItem('saved_sub_zones')) || []; // Danh sách vùng nhỏ tự tạo
+    let activeSubZone = null;
+    let customSubZones = JSON.parse(localStorage.getItem('saved_sub_zones')) || [];
     let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
     let map, markerClusterGroup, highlightCirclesGroup;
     let isSidebarCollapsed = false;
+
+    // Biến tạm để chọn bưu cục trong modal Subzone
+    let subzoneSelectedOfficeIds = new Set();
+    let subzoneFilteredOffices = [];
 
     // --- 2. TẢI TỪ SUPABASE CLOUD ---
     async function loadDataFromCloud() {
@@ -514,7 +581,8 @@
           lng: row.lng,
           address: row.address,
           dailyOrders: row.daily_orders,
-          trucks: row.trucks
+          trucks: row.trucks,
+          updatedAt: row.created_at || new Date().toISOString()
         }));
 
         renderMarkers();
@@ -530,7 +598,6 @@
     function initMap() {
       map = L.map('map', { zoomControl: true }).setView([21.3, 105.5], 8);
 
-      // BẢN ĐỒ GOOGLE MAPS: Tải tức thì tại VN, không bao giờ xám
       L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
         attribution: '&copy; Google Maps',
         maxZoom: 20,
@@ -538,7 +605,6 @@
         keepBuffer: 6
       }).addTo(map);
 
-      // Tự động tính lại kích thước chống xám
       setTimeout(() => { map.invalidateSize(); }, 300);
       window.addEventListener('resize', () => { map.invalidateSize(); });
 
@@ -551,19 +617,22 @@
 
       highlightCirclesGroup = L.featureGroup().addTo(map);
 
-      // Load tỉnh vào modal
+      // Điền options tỉnh vào select
       const provSelect = document.getElementById('office-modal-province');
       const szProvSelect = document.getElementById('subzone-province');
+      const tableFilterProv = document.getElementById('filter-table-province');
+      
       const provOptions = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
       provSelect.innerHTML = provOptions;
       szProvSelect.innerHTML = provOptions;
+      tableFilterProv.innerHTML = '<option value="">-- Tất cả 25 tỉnh --</option>' + provOptions;
 
       renderAccordion();
       renderSubZonesList();
       loadDataFromCloud();
     }
 
-    // --- 4. TÍNH NĂNG ẨN / HIỆN THANH KHU VỰC (TOGGLE SIDEBAR) ---
+    // --- 4. ẨN / HIỆN SIDEBAR ---
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar-container');
       const icon = document.getElementById('sidebar-toggle-icon');
@@ -577,7 +646,6 @@
         icon.className = 'fa-solid fa-chevron-left text-xs';
       }
 
-      // Ép bản đồ tự tính lại chiều rộng ngay khi sidebar trượt
       setTimeout(() => { map.invalidateSize(); }, 310);
     }
 
@@ -596,45 +664,84 @@
       }
     }
 
-    // --- 5. TÍNH NĂNG TẠO VÀ QUẢN LÝ VÙNG NHỎ (SUB-ZONES) ---
+    // --- 5. TẠO VÙNG NHỎ (CÓ TÌM KIẾM NHANH) ---
     function openCreateSubZoneModal() {
       document.getElementById('subzone-name').value = '';
+      document.getElementById('subzone-search-input').value = '';
+      subzoneSelectedOfficeIds.clear();
+
       const currentProv = Array.from(selectedProvinceIds)[0] || 'HNI';
       document.getElementById('subzone-province').value = currentProv;
-      renderOfficesForSubzoneSelect(currentProv);
+      loadOfficesForSubzoneModal(currentProv, '');
       openModal('modal-subzone');
     }
 
-    function renderOfficesForSubzoneSelect(provinceId) {
+    function onSubzoneProvinceChange(provinceId) {
+      document.getElementById('subzone-search-input').value = '';
+      subzoneSelectedOfficeIds.clear();
+      loadOfficesForSubzoneModal(provinceId, '');
+    }
+
+    function filterSubzoneOffices(keyword) {
+      const provinceId = document.getElementById('subzone-province').value;
+      loadOfficesForSubzoneModal(provinceId, keyword);
+    }
+
+    function loadOfficesForSubzoneModal(provinceId, keyword = '') {
       const container = document.getElementById('subzone-office-picker');
-      const offices = postOfficesData.filter(po => po.provinceId === provinceId);
+      const officesInProv = postOfficesData.filter(po => po.provinceId === provinceId);
       
-      if (offices.length === 0) {
-        container.innerHTML = '<div class="text-gray-400 text-center py-4">Tỉnh này chưa có bưu cục nào!</div>';
-        document.getElementById('subzone-selected-count').innerText = 'Đã chọn: 0';
+      const kw = keyword.trim().toLowerCase();
+      subzoneFilteredOffices = officesInProv.filter(po => {
+        if (!kw) return true;
+        return (po.code && po.code.toLowerCase().includes(kw)) ||
+               (po.name && po.name.toLowerCase().includes(kw)) ||
+               (po.address && po.address.toLowerCase().includes(kw));
+      });
+
+      if (subzoneFilteredOffices.length === 0) {
+        container.innerHTML = '<div class="text-gray-400 text-center py-4 text-xs">Không tìm thấy bưu cục nào phù hợp!</div>';
         return;
       }
 
-      container.innerHTML = offices.map(po => `
-        <label class="flex items-center space-x-2 p-1.5 hover:bg-white rounded cursor-pointer border border-transparent hover:border-gray-200">
-          <input type="checkbox" value="${po.id}" class="subzone-office-cb rounded text-red-600 focus:ring-0" onchange="updateSubzoneSelectedCount()">
-          <span class="font-bold text-[11px] text-gray-800">[${po.carrier}] ${po.name}</span>
-          <span class="text-gray-400 text-[10px]">(${po.code})</span>
-        </label>
-      `).join('');
-      updateSubzoneSelectedCount();
+      container.innerHTML = subzoneFilteredOffices.map(po => {
+        const isChecked = subzoneSelectedOfficeIds.has(po.id);
+        return `
+          <label class="flex items-center space-x-2 p-1.5 hover:bg-white rounded cursor-pointer border border-transparent hover:border-gray-200">
+            <input type="checkbox" onchange="toggleSubzoneOfficeCheckbox('${po.id}', this.checked)" ${isChecked ? 'checked' : ''} 
+                   class="rounded text-red-600 focus:ring-0">
+            <span class="font-bold text-[11px] text-gray-800">[${po.carrier}] ${po.name}</span>
+            <span class="text-gray-400 text-[10px]">(${po.code})</span>
+          </label>
+        `;
+      }).join('');
+      updateSubzoneSelectedCountText();
     }
 
-    function updateSubzoneSelectedCount() {
-      const checked = document.querySelectorAll('.subzone-office-cb:checked').length;
-      document.getElementById('subzone-selected-count').innerText = `Đã chọn: ${checked}`;
+    function toggleSubzoneOfficeCheckbox(id, isChecked) {
+      if (isChecked) subzoneSelectedOfficeIds.add(id);
+      else subzoneSelectedOfficeIds.delete(id);
+      updateSubzoneSelectedCountText();
+    }
+
+    function selectAllFilteredSubzone(isSelect) {
+      subzoneFilteredOffices.forEach(po => {
+        if (isSelect) subzoneSelectedOfficeIds.add(po.id);
+        else subzoneSelectedOfficeIds.delete(po.id);
+      });
+      const provinceId = document.getElementById('subzone-province').value;
+      const kw = document.getElementById('subzone-search-input').value;
+      loadOfficesForSubzoneModal(provinceId, kw);
+    }
+
+    function updateSubzoneSelectedCountText() {
+      document.getElementById('subzone-selected-count').innerText = `Đã chọn: ${subzoneSelectedOfficeIds.size} bưu cục`;
     }
 
     function saveSubZone() {
       const name = document.getElementById('subzone-name').value.trim();
       const provinceId = document.getElementById('subzone-province').value;
-      const checkedBoxes = document.querySelectorAll('.subzone-office-cb:checked');
-      const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+      const selectedIds = Array.from(subzoneSelectedOfficeIds);
 
       if (!name) {
         alert("Vui lòng nhập tên Vùng nhỏ / Cụm!");
@@ -657,7 +764,7 @@
       closeModal('modal-subzone');
       renderSubZonesList();
       selectSubZone(newSubZone.id);
-      alert(`Đã tạo cụm [${name}] thành công!`);
+      alert(`Đã tạo cụm [${name}] thành công với ${selectedIds.length} bưu cục!`);
     }
 
     function renderSubZonesList() {
@@ -688,10 +795,10 @@
                   <span>${sz.name}</span>
                 </div>
                 <div class="text-[10px] text-gray-500 mt-1">
-                  Thuộc: <b>${provName}</b> • Số bưu cục: <b>${sz.officeIds.length}</b>
+                  Thuộc: <b>${provName}</b> • Bưu cục: <b>${sz.officeIds.length}</b>
                 </div>
               </div>
-              <button onclick="deleteSubZone('${sz.id}')" class="text-gray-400 hover:text-red-600 p-1" title="Xóa vùng nhỏ này">
+              <button onclick="deleteSubZone('${sz.id}')" class="text-gray-400 hover:text-red-600 p-1" title="Xóa cụm này">
                 <i class="fa-solid fa-trash-can text-xs"></i>
               </button>
             </div>
@@ -707,22 +814,18 @@
       selectedProvinceIds.clear();
       highlightCirclesGroup.clearLayers();
 
-      // Lấy danh sách bưu cục trong cụm
       const subZoneOffices = postOfficesData.filter(po => activeSubZone.officeIds.includes(po.id) && po.lat && po.lng);
 
       if (subZoneOffices.length > 0) {
-        // Tính tâm trung bình của các bưu cục trong cụm
         const avgLat = subZoneOffices.reduce((s, o) => s + o.lat, 0) / subZoneOffices.length;
         const avgLng = subZoneOffices.reduce((s, o) => s + o.lng, 0) / subZoneOffices.length;
 
-        // Tính bán kính bao phủ xa nhất của cụm
-        let maxDist = 5000;
+        let maxDist = 3000;
         subZoneOffices.forEach(o => {
           const dist = map.distance([avgLat, avgLng], [o.lat, o.lng]);
           if (dist > maxDist) maxDist = dist;
         });
 
-        // Vẽ vòng tròn khoanh vùng cho riêng cụm này
         const circle = L.circle([avgLat, avgLng], {
           radius: maxDist + 1500,
           color: '#E11B22',
@@ -774,7 +877,7 @@
           <div class="bg-gray-50/90 px-3.5 py-2.5 flex items-center justify-between hover:bg-gray-100 transition">
             <div class="flex items-center space-x-2">
               <input type="checkbox" onchange="toggleSelectRegion('${regionName}', this.checked)" ${isAllRegionSelected ? 'checked' : ''} 
-                     class="rounded text-red-600 focus:ring-0 cursor-pointer" title="Chọn toàn bộ ${regionName}">
+                     class="rounded text-red-600 focus:ring-0 cursor-pointer">
               <span onclick="toggleAccordionGroup('${regionName}')" class="text-xs font-bold text-gray-800 uppercase tracking-wider cursor-pointer select-none">
                 ${regionName} (${filtered.length})
               </span>
@@ -890,7 +993,6 @@
         titleEl.title = Array.from(selectedProvinceIds).map(id => ALL_PROVINCES.find(p => p.id === id)?.name).join(', ');
       }
 
-      // KHOANH TRÒN CHO TỪNG TỈNH ĐƯỢC CHỌN
       selectedProvinceIds.forEach(id => {
         const prov = ALL_PROVINCES.find(p => p.id === id);
         if (prov && prov.center) {
@@ -916,15 +1018,13 @@
       renderStats();
     }
 
-    // --- 7. RENDER MARKERS & THỐNG KÊ (CẢ TỈNH VÀ CỤM VÙNG NHỎ) ---
+    // --- 7. RENDER MARKERS & THỐNG KÊ ---
     function renderMarkers() {
       markerClusterGroup.clearLayers();
 
       const pointsToDisplay = postOfficesData.filter(po => {
         if (!visibleCarriers.has(po.carrier)) return false;
-        // Nếu đang xem 1 cụm vùng nhỏ
         if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
-        // Nếu đang chọn các tỉnh
         if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
         return true;
       });
@@ -1050,7 +1150,7 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 8. CẬP NHẬT / SỬA / XÓA LÊN CLOUD ---
+    // --- 8. CẬP NHẬT / SỬA / XÓA BƯU CỤC ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -1183,24 +1283,70 @@
       }
     }
 
+    // --- 9. RENDER BẢNG DỮ LIỆU & BỘ LỌC ĐA NĂNG ---
+    function resetTableFilters() {
+      document.getElementById('filter-table-keyword').value = '';
+      document.getElementById('filter-table-province').value = '';
+      document.getElementById('filter-table-carrier').value = '';
+      document.getElementById('filter-table-status').value = '';
+      renderDataTable();
+    }
+
     function renderDataTable() {
       const tbody = document.getElementById('table-data-body');
-      tbody.innerHTML = postOfficesData.map(po => {
+      const kw = (document.getElementById('filter-table-keyword')?.value || '').trim().toLowerCase();
+      const selProv = document.getElementById('filter-table-province')?.value || '';
+      const selCarrier = document.getElementById('filter-table-carrier')?.value || '';
+      const selStatus = document.getElementById('filter-table-status')?.value || '';
+
+      // Áp dụng bộ lọc
+      const filtered = postOfficesData.filter(po => {
+        if (selProv && po.provinceId !== selProv) return false;
+        if (selCarrier && po.carrier !== selCarrier) return false;
+        if (selStatus === 'ACTIVE' && (!po.lat || !po.lng)) return false;
+        if (selStatus === 'PENDING' && (po.lat && po.lng)) return false;
+        if (kw) {
+          const matchCode = po.code && po.code.toLowerCase().includes(kw);
+          const matchName = po.name && po.name.toLowerCase().includes(kw);
+          const matchAddr = po.address && po.address.toLowerCase().includes(kw);
+          if (!matchCode && !matchName && !matchAddr) return false;
+        }
+        return true;
+      });
+
+      document.getElementById('table-record-count').innerText = `Đang hiển thị: ${filtered.length} / ${postOfficesData.length} bưu cục`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-8 text-gray-400">Không tìm thấy bưu cục nào phù hợp với bộ lọc!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(po => {
         const gmapsLink = (po.lat && po.lng) 
           ? `<a href="https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}" target="_blank" class="text-blue-600 font-bold hover:underline">Xem Maps &rarr;</a>` 
           : '—';
+        
+        let dateStr = '—';
+        if (po.updatedAt) {
+          const d = new Date(po.updatedAt);
+          if (!isNaN(d.getTime())) {
+            dateStr = d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+          }
+        }
+
         return `
           <tr class="hover:bg-gray-50">
             <td class="p-2.5 border-r font-bold">${po.code}</td>
             <td class="p-2.5 border-r">${po.name}</td>
             <td class="p-2.5 border-r font-semibold">${po.carrier}</td>
-            <td class="p-2.5 border-r">${po.provinceId}</td>
-            <td class="p-2.5 border-r font-mono">${po.lat && po.lng ? `${po.lat.toFixed(3)}, ${po.lng.toFixed(3)}` : '<span class="text-amber-600 bg-amber-50 px-1 rounded">Chờ định vị</span>'}</td>
-            <td class="p-2.5 border-r text-right font-medium">${po.dailyOrders ?? '—'}</td>
+            <td class="p-2.5 border-r font-bold text-red-600">${po.provinceId}</td>
+            <td class="p-2.5 border-r font-mono text-[11px]">${po.lat && po.lng ? `${po.lat.toFixed(3)}, ${po.lng.toFixed(3)}` : '<span class="text-amber-600 bg-amber-50 px-1 rounded">Chờ định vị</span>'}</td>
+            <td class="p-2.5 border-r text-right font-medium">${po.dailyOrders ? po.dailyOrders.toLocaleString() : '—'}</td>
             <td class="p-2.5 border-r text-right font-medium">${po.trucks ?? '—'}</td>
             <td class="p-2.5 border-r text-center">${gmapsLink}</td>
             <td class="p-2.5 border-r text-center"><span class="px-2 py-0.5 rounded text-[10px] ${po.lat ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${po.lat ? 'Hoạt động' : 'Chờ tọa độ'}</span></td>
-            <td class="p-2.5 text-center space-x-2">
+            <td class="p-2.5 border-r text-center text-gray-500 font-mono text-[11px]">${dateStr}</td>
+            <td class="p-2.5 text-center space-x-1.5">
               <button onclick="editOffice('${po.id}')" title="Chỉnh sửa" class="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
@@ -1213,12 +1359,27 @@
       }).join('');
     }
 
+    // --- 10. XUẤT CSV CHUẨN SHEETJS (KHÔNG BAO GIỜ BỊ VỠ CỘT HOẶC LỆCH DÒNG) ---
     function exportCurrentDataToCSV() {
-      let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe\n";
-      postOfficesData.forEach(po => {
-        csv += `"${po.code}","${po.name}","${po.carrier}","${po.provinceId}","${po.lat || ''}","${po.lng || ''}","${po.address || ''}","${po.dailyOrders || ''}","${po.trucks || ''}"\n`;
-      });
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      if (postOfficesData.length === 0) {
+        alert("Không có dữ liệu bưu cục để xuất!");
+        return;
+      }
+      const exportRows = postOfficesData.map(po => ({
+        "Mã bưu cục": po.code,
+        "Tên bưu cục": po.name,
+        "Hãng": po.carrier,
+        "Mã tỉnh": po.provinceId,
+        "Vĩ độ": po.lat ?? '',
+        "Kinh độ": po.lng ?? '',
+        "Địa chỉ": po.address ?? '',
+        "Đơn/ngày": po.dailyOrders ?? '',
+        "Số xe": po.trucks ?? ''
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportRows);
+      const csvOutput = XLSX.utils.sheet_to_csv(ws);
+      const blob = new Blob(["\uFEFF" + csvOutput], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -1239,7 +1400,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 9. BỘ ĐỌC FILE TỔNG HỢP ---
+    // --- 11. BỘ NHẬP FILE TỔNG HỢP VỚI CƠ CHẾ SỬA MÃ TỈNH TỰ ĐỘNG ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1316,11 +1477,15 @@
         const carrier = String(getField(['Hãng', 'carrier']) || 'J&T').trim();
         let rawProv = String(getField(['Mã tỉnh', 'province_id', 'tỉnh']) || '').trim().toUpperCase();
 
-        if (!rawProv) {
-          const m = name.match(/\(([A-Za-zĐđ]+)\)/);
-          if (m && PROV_MAPPING[m[1].toUpperCase()]) rawProv = PROV_MAPPING[m[1].toUpperCase()];
-        } else if (PROV_MAPPING[rawProv]) {
+        // Kiểm tra mã tỉnh từ cột, nếu không có hoặc viết tắt thì chuẩn hóa
+        if (PROV_MAPPING[rawProv]) {
           rawProv = PROV_MAPPING[rawProv];
+        } else {
+          // Đoán từ tên bưu cục: ví dụ (HNM) -> HNA, (TBH) -> TBH
+          const m = name.match(/\(([A-Za-zĐđ]+)\)/);
+          if (m && PROV_MAPPING[m[1].toUpperCase()]) {
+            rawProv = PROV_MAPPING[m[1].toUpperCase()];
+          }
         }
 
         const latVal = parseFloat(getField(['Vĩ độ', 'lat', 'latitude']));
