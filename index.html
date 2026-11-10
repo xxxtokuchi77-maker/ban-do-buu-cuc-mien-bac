@@ -1502,7 +1502,7 @@
         const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
 
         uploadBatch.push({
-          id: `BC-${Date.now()}-${idx}`,
+          id: code,
           code: code,
           name: name,
           carrier: carrier,
@@ -1572,7 +1572,7 @@
 
         if (VALID_PROVINCE_CODES.has(provId)) {
           uploadBatch.push({
-            id: `KML-${Date.now()}-${i}`,
+            id: code,
             code: code,
             name: name,
             carrier: 'J&T',
