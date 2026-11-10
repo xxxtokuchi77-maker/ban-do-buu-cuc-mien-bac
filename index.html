@@ -43,7 +43,7 @@
       </h1>
       <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center space-x-1">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span>Cloud Trực tuyến</span>
+        <span>Cloud Đồng bộ trực tuyến</span>
       </span>
     </div>
 
@@ -73,17 +73,23 @@
 
     <!-- VIEW 1: BẢN ĐỒ -->
     <div id="view-map" class="flex flex-1 w-full h-full relative">
-      <aside class="w-72 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0">
+      <!-- CỘT BÊN TRÁI: CHỌN VÙNG VÀ NHIỀU TỈNH -->
+      <aside class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0">
         <div class="p-3 border-b border-gray-200">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
             <input type="text" id="search-input" oninput="filterProvinces(this.value)" placeholder="Tìm tỉnh / bưu cục..." 
                    class="w-full bg-gray-50 border border-gray-300 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
           </div>
+          <div class="flex items-center justify-between mt-2.5 px-1 text-[11px]">
+            <span class="text-gray-500">Tích chọn để xem nhiều tỉnh:</span>
+            <button onclick="clearProvinceSelection()" class="text-red-600 hover:underline font-semibold">Bỏ chọn hết</button>
+          </div>
         </div>
         <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
       </aside>
 
+      <!-- KHU VỰC TRUNG TÂM: MAP -->
       <main class="flex-1 relative">
         <div id="map"></div>
 
@@ -95,11 +101,11 @@
         <!-- BẢNG THỐNG KÊ GÓC TRÊN BÊN PHẢI -->
         <div class="absolute top-4 right-4 z-[400] w-96 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 p-4">
           <div class="flex items-center justify-between pb-3 border-b border-gray-100">
-            <div>
-              <h2 id="stats-target-title" class="text-base font-extrabold text-red-600 uppercase tracking-wide">TOÀN MIỀN BẮC</h2>
+            <div class="max-w-[210px]">
+              <h2 id="stats-target-title" class="text-sm font-extrabold text-red-600 uppercase tracking-wide truncate" title="TOÀN MIỀN BẮC">TOÀN MIỀN BẮC</h2>
               <div class="text-[11px] text-gray-500 flex items-center space-x-1 mt-0.5">
-                <i class="fa-solid fa-cloud text-blue-500"></i>
-                <span id="stats-data-status">Dữ liệu Cloud đồng bộ trực tuyến</span>
+                <i class="fa-solid fa-circle-dot text-red-500"></i>
+                <span id="stats-data-status">Khoanh vùng hình tròn theo địa bàn</span>
               </div>
             </div>
             
@@ -136,7 +142,7 @@
           </div>
         </div>
 
-        <!-- GÓC DƯỚI BÊN TRÁI -->
+        <!-- GÓC DƯỚI BÊN TRÁI: BỘ LỌC HÃNG -->
         <div class="absolute bottom-6 left-6 z-[400] bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 p-3.5 w-64 text-xs">
           <div class="font-bold text-gray-800 mb-2">Chú giải bưu cục</div>
           <div class="space-y-2">
@@ -326,7 +332,7 @@
     </div>
   </div>
 
-  <!-- Thư viện Leaflet, PapaParse, SheetJS & Supabase JS -->
+  <!-- Thư viện bản đồ, SheetJS & Supabase JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -334,49 +340,46 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // =========================================================================
-    // ĐÃ TỰ ĐIỀN PROJECT URL CỦA BẠN. BẠN CHỈ CẦN DÁN ANON KEY VÀO DÒNG DƯỚI:
-    // =========================================================================
     const SUPABASE_URL = "https://zokrcnwmmlrfgtycydpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_OY6DzKcMi0RABPhB6C7R3A_eawc_KHx";
 
     let supabaseClient = null;
-    if (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('DÁN_ANON_KEY')) {
+    if (SUPABASE_ANON_KEY) {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // --- 1. ĐỊNH NGHĨA 3 VÙNG (25 TỈNH) ---
+    // --- 1. THIẾT LẬP TỌA ĐỘ VÀ BÁN KÍNH HÌNH TRÒN CHO TỪNG TỈNH ---
     const NORTH_REGIONS = {
       "Hà Nội": [
-        { id: 'HNI', name: 'Hà Nội', center: [21.0285, 105.8542], zoom: 11, bbox: [[20.55, 105.35], [21.35, 106.05]] },
-        { id: 'VPH', name: 'Vĩnh Phúc', center: [21.3089, 105.6049], zoom: 11, bbox: [[21.15, 105.40], [21.55, 105.80]] }
+        { id: 'HNI', name: 'Hà Nội', center: [21.0285, 105.8542], radius: 32000 },
+        { id: 'VPH', name: 'Vĩnh Phúc', center: [21.3089, 105.6049], radius: 22000 }
       ],
       "Bắc 2": [
-        { id: 'BNI', name: 'Bắc Ninh', center: [21.1861, 106.0763], zoom: 11, bbox: [[21.05, 105.95], [21.28, 106.30]] },
-        { id: 'HDU', name: 'Hải Dương', center: [20.9375, 106.3146], zoom: 11, bbox: [[20.70, 106.10], [21.20, 106.60]] },
-        { id: 'HPG', name: 'Hải Phòng', center: [20.8449, 106.6881], zoom: 11, bbox: [[20.50, 106.40], [21.05, 107.10]] },
-        { id: 'NDH', name: 'Nam Định', center: [20.4343, 106.1777], zoom: 11, bbox: [[20.00, 105.95], [20.55, 106.55]] },
-        { id: 'TBH', name: 'Thái Bình', center: [20.4463, 106.3365], zoom: 11, bbox: [[20.20, 106.10], [20.70, 106.65]] },
-        { id: 'NBH', name: 'Ninh Bình', center: [20.2506, 105.9745], zoom: 11, bbox: [[20.00, 105.65], [20.45, 106.15]] },
-        { id: 'HNA', name: 'Hà Nam', center: [20.5452, 105.9122], zoom: 11, bbox: [[20.35, 105.75], [20.70, 106.15]] },
-        { id: 'HYN', name: 'Hưng Yên', center: [20.6464, 106.0511], zoom: 11, bbox: [[20.50, 105.85], [20.95, 106.25]] },
-        { id: 'QNH', name: 'Quảng Ninh', center: [21.0069, 107.2925], zoom: 10, bbox: [[20.70, 106.40], [21.60, 108.10]] }
+        { id: 'BNI', name: 'Bắc Ninh', center: [21.1861, 106.0763], radius: 18000 },
+        { id: 'HDU', name: 'Hải Dương', center: [20.9375, 106.3146], radius: 25000 },
+        { id: 'HPG', name: 'Hải Phòng', center: [20.8449, 106.6881], radius: 28000 },
+        { id: 'NDH', name: 'Nam Định', center: [20.4343, 106.1777], radius: 25000 },
+        { id: 'TBH', name: 'Thái Bình', center: [20.4463, 106.3365], radius: 25000 },
+        { id: 'NBH', name: 'Ninh Bình', center: [20.2506, 105.9745], radius: 24000 },
+        { id: 'HNA', name: 'Hà Nam', center: [20.5452, 105.9122], radius: 20000 },
+        { id: 'HYN', name: 'Hưng Yên', center: [20.6464, 106.0511], radius: 22000 },
+        { id: 'QNH', name: 'Quảng Ninh', center: [21.1200, 107.2500], radius: 52000 }
       ],
       "Bắc 1": [
-        { id: 'HBH', name: 'Hòa Bình', center: [20.8133, 105.3383], zoom: 10, bbox: [[20.30, 104.80], [21.15, 105.75]] },
-        { id: 'SLA', name: 'Sơn La', center: [21.3283, 103.9148], zoom: 10, bbox: [[20.65, 103.15], [22.05, 105.05]] },
-        { id: 'DBN', name: 'Điện Biên', center: [21.3861, 103.0232], zoom: 10, bbox: [[21.00, 102.15], [22.50, 103.60]] },
-        { id: 'LCH', name: 'Lai Châu', center: [22.3964, 103.4684], zoom: 10, bbox: [[21.80, 102.80], [22.85, 104.05]] },
-        { id: 'LCA', name: 'Lào Cai', center: [22.4856, 103.9707], zoom: 10, bbox: [[22.10, 103.50], [22.95, 104.65]] },
-        { id: 'YBI', name: 'Yên Bái', center: [21.7167, 104.8833], zoom: 10, bbox: [[21.30, 104.00], [22.30, 105.20]] },
-        { id: 'HGI', name: 'Hà Giang', center: [22.8233, 104.9839], zoom: 10, bbox: [[22.15, 104.30], [23.40, 105.55]] },
-        { id: 'TQU', name: 'Tuyên Quang', center: [21.8234, 105.2140], zoom: 10, bbox: [[21.50, 104.90], [22.70, 105.60]] },
-        { id: 'PTO', name: 'Phú Thọ', center: [21.3227, 105.2280], zoom: 11, bbox: [[20.90, 104.80], [21.75, 105.45]] },
-        { id: 'TNN', name: 'Thái Nguyên', center: [21.5942, 105.8482], zoom: 11, bbox: [[21.30, 105.50], [22.05, 106.25]] },
-        { id: 'BKA', name: 'Bắc Kạn', center: [22.1470, 105.8348], zoom: 10, bbox: [[21.80, 105.40], [22.75, 106.30]] },
-        { id: 'CBA', name: 'Cao Bằng', center: [22.6667, 106.2500], zoom: 10, bbox: [[22.25, 105.30], [23.10, 106.85]] },
-        { id: 'LSN', name: 'Lạng Sơn', center: [21.8533, 106.7617], zoom: 10, bbox: [[21.30, 106.10], [22.45, 107.40]] },
-        { id: 'BGI', name: 'Bắc Giang', center: [21.2731, 106.1946], zoom: 11, bbox: [[21.10, 105.90], [21.65, 107.05]] }
+        { id: 'HBH', name: 'Hòa Bình', center: [20.8133, 105.3383], radius: 35000 },
+        { id: 'SLA', name: 'Sơn La', center: [21.3283, 103.9148], radius: 58000 },
+        { id: 'DBN', name: 'Điện Biên', center: [21.5000, 103.0232], radius: 60000 },
+        { id: 'LCH', name: 'Lai Châu', center: [22.3964, 103.4684], radius: 52000 },
+        { id: 'LCA', name: 'Lào Cai', center: [22.3800, 104.0200], radius: 45000 },
+        { id: 'YBI', name: 'Yên Bái', center: [21.7167, 104.8833], radius: 45000 },
+        { id: 'HGI', name: 'Hà Giang', center: [22.8233, 104.9839], radius: 50000 },
+        { id: 'TQU', name: 'Tuyên Quang', center: [21.8234, 105.2140], radius: 40000 },
+        { id: 'PTO', name: 'Phú Thọ', center: [21.3227, 105.2280], radius: 30000 },
+        { id: 'TNN', name: 'Thái Nguyên', center: [21.5942, 105.8482], radius: 28000 },
+        { id: 'BKA', name: 'Bắc Kạn', center: [22.1470, 105.8348], radius: 35000 },
+        { id: 'CBA', name: 'Cao Bằng', center: [22.6667, 106.2500], radius: 45000 },
+        { id: 'LSN', name: 'Lạng Sơn', center: [21.8533, 106.7617], radius: 45000 },
+        { id: 'BGI', name: 'Bắc Giang', center: [21.2731, 106.1946], radius: 30000 }
       ]
     };
 
@@ -405,16 +408,13 @@
     };
 
     let postOfficesData = [];
-    let selectedProvinceId = null;
+    let selectedProvinceIds = new Set(); // Hỗ trợ chọn nhiều tỉnh cùng lúc
     let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
-    let map, markerClusterGroup, highlightLayer;
+    let map, markerClusterGroup, highlightCirclesGroup;
 
-    // --- 2. TẢI DỮ LIỆU TỪ SUPABASE CLOUD (KHI MỞ TRANG) ---
+    // --- 2. TẢI TỪ SUPABASE CLOUD ---
     async function loadDataFromCloud() {
-      if (!supabaseClient) {
-        console.warn("Chưa cấu hình Anon Key cho Supabase.");
-        return;
-      }
+      if (!supabaseClient) return;
 
       try {
         const { data, error } = await supabaseClient.from('post_offices').select('*');
@@ -458,6 +458,9 @@
       });
       map.addLayer(markerClusterGroup);
 
+      // Nhóm chứa các vòng tròn khoanh vùng
+      highlightCirclesGroup = L.featureGroup().addTo(map);
+
       const provSelect = document.getElementById('office-modal-province');
       provSelect.innerHTML = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
 
@@ -465,6 +468,7 @@
       loadDataFromCloud();
     }
 
+    // --- 4. RENDER DANH SÁCH 3 VÙNG VÀ CHECKBOX CHỌN NHIỀU TỈNH ---
     function renderAccordion(searchTerm = '') {
       const container = document.getElementById('accordion-container');
       container.innerHTML = '';
@@ -473,25 +477,42 @@
         const filtered = provinces.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
         if (searchTerm && filtered.length === 0) return;
 
+        const isAllRegionSelected = filtered.length > 0 && filtered.every(p => selectedProvinceIds.has(p.id));
+
         const section = document.createElement('div');
         section.className = 'border-b border-gray-100';
         section.innerHTML = `
-          <div onclick="toggleAccordionGroup('${regionName}')" class="bg-gray-50/90 px-4 py-2.5 flex items-center justify-between cursor-pointer hover:bg-gray-100 transition">
-            <span class="text-xs font-bold text-gray-800 uppercase tracking-wider">${regionName} (${filtered.length})</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 transform transition-transform" id="arrow-${regionName}"></i>
+          <div class="bg-gray-50/90 px-3.5 py-2.5 flex items-center justify-between hover:bg-gray-100 transition">
+            <div class="flex items-center space-x-2">
+              <input type="checkbox" onchange="toggleSelectRegion('${regionName}', this.checked)" ${isAllRegionSelected ? 'checked' : ''} 
+                     class="rounded text-red-600 focus:ring-0 cursor-pointer" title="Chọn toàn bộ ${regionName}">
+              <span onclick="toggleAccordionGroup('${regionName}')" class="text-xs font-bold text-gray-800 uppercase tracking-wider cursor-pointer select-none">
+                ${regionName} (${filtered.length})
+              </span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="selectOnlyRegion('${regionName}')" class="text-[10px] bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded font-semibold transition" title="Xem tổng ${regionName}">
+                Xem cả vùng
+              </button>
+              <i onclick="toggleAccordionGroup('${regionName}')" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transform transition-transform cursor-pointer" id="arrow-${regionName}"></i>
+            </div>
           </div>
           <div id="group-${regionName}" class="divide-y divide-gray-50">
-            ${filtered.map(p => `
-              <div onclick="selectProvince('${p.id}')" 
-                   id="prov-item-${p.id}"
-                   class="px-5 py-2.5 flex items-center justify-between cursor-pointer hover:bg-red-50/50 transition text-xs ${selectedProvinceId === p.id ? 'bg-red-50 text-red-600 font-bold border-r-4 border-red-600' : 'text-gray-600'}">
-                <div class="flex items-center space-x-2">
-                  <i class="fa-solid fa-location-dot text-[11px] ${selectedProvinceId === p.id ? 'text-red-600' : 'text-gray-400'}"></i>
-                  <span>${p.name}</span>
+            ${filtered.map(p => {
+              const isChecked = selectedProvinceIds.has(p.id);
+              return `
+                <div class="px-4 py-2 flex items-center justify-between hover:bg-red-50/40 transition text-xs ${isChecked ? 'bg-red-50/70 font-semibold text-red-600' : 'text-gray-700'}">
+                  <label class="flex items-center space-x-2.5 flex-1 cursor-pointer select-none">
+                    <input type="checkbox" onchange="toggleSelectProvince('${p.id}', this.checked)" ${isChecked ? 'checked' : ''} 
+                           class="rounded text-red-600 focus:ring-0">
+                    <span class="text-xs">${p.name}</span>
+                  </label>
+                  <button onclick="selectOnlyProvince('${p.id}')" class="text-[10px] text-gray-400 hover:text-red-600 px-1.5 py-0.5" title="Chỉ xem tỉnh này">
+                    Chỉ xem
+                  </button>
                 </div>
-                ${selectedProvinceId === p.id ? '<i class="fa-solid fa-check text-[10px] text-red-600"></i>' : ''}
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         `;
         container.appendChild(section);
@@ -507,50 +528,112 @@
 
     function filterProvinces(term) { renderAccordion(term); }
 
-    function selectProvince(provId) {
-      selectedProvinceId = provId;
-      const prov = ALL_PROVINCES.find(p => p.id === provId);
-      if (!prov) return;
+    // --- 5. LOGIC KHOANH VÙNG HÌNH TRÒN & CHỌN NHIỀU VÙNG ---
+    function toggleSelectProvince(provId, isChecked) {
+      if (isChecked) selectedProvinceIds.add(provId);
+      else selectedProvinceIds.delete(provId);
+      applyAreaSelection();
+    }
 
-      renderAccordion();
-      map.flyTo(prov.center, prov.zoom, { duration: 0.8 });
-      document.getElementById('stats-target-title').innerText = prov.name;
+    function selectOnlyProvince(provId) {
+      selectedProvinceIds.clear();
+      selectedProvinceIds.add(provId);
+      applyAreaSelection();
+    }
 
-      if (highlightLayer) map.removeLayer(highlightLayer);
+    function toggleSelectRegion(regionName, isChecked) {
+      const list = NORTH_REGIONS[regionName] || [];
+      list.forEach(p => {
+        if (isChecked) selectedProvinceIds.add(p.id);
+        else selectedProvinceIds.delete(p.id);
+      });
+      applyAreaSelection();
+    }
 
-      if (prov.bbox) {
-        highlightLayer = L.rectangle(prov.bbox, {
-          color: '#E11B22',
-          weight: 3,
-          fillColor: '#FF4D4F',
-          fillOpacity: 0.12,
-          dashArray: '4, 4'
-        }).addTo(map);
-      }
+    function selectOnlyRegion(regionName) {
+      selectedProvinceIds.clear();
+      const list = NORTH_REGIONS[regionName] || [];
+      list.forEach(p => selectedProvinceIds.add(p.id));
+      applyAreaSelection();
+    }
 
-      renderMarkers();
-      renderStats();
+    function clearProvinceSelection() {
+      selectedProvinceIds.clear();
+      applyAreaSelection();
     }
 
     function selectEntireNorth() {
-      selectedProvinceId = null;
-      if (highlightLayer) {
-        map.removeLayer(highlightLayer);
-        highlightLayer = null;
-      }
-      renderAccordion();
+      selectedProvinceIds.clear();
+      applyAreaSelection();
       map.flyTo([21.3, 105.5], 8, { duration: 0.8 });
-      document.getElementById('stats-target-title').innerText = 'TOÀN MIỀN BẮC';
+    }
+
+    // Vẽ các vòng tròn khoanh vùng và phóng góc nhìn vừa vặn
+    function applyAreaSelection() {
+      highlightCirclesGroup.clearLayers();
+
+      // Cập nhật tiêu đề hiển thị
+      const titleEl = document.getElementById('stats-target-title');
+      if (selectedProvinceIds.size === 0) {
+        titleEl.innerText = 'TOÀN MIỀN BẮC';
+        titleEl.title = 'TOÀN MIỀN BẮC';
+      } else if (selectedProvinceIds.size === 1) {
+        const singleProv = ALL_PROVINCES.find(p => p.id === Array.from(selectedProvinceIds)[0]);
+        titleEl.innerText = singleProv ? singleProv.name.toUpperCase() : 'TỈNH ĐÃ CHỌN';
+        titleEl.title = titleEl.innerText;
+      } else {
+        // Kiểm tra xem có trọn vẹn cả vùng lớn nào không
+        let matchedRegion = null;
+        for (let [rName, rList] of Object.entries(NORTH_REGIONS)) {
+          if (rList.length === selectedProvinceIds.size && rList.every(p => selectedProvinceIds.has(p.id))) {
+            matchedRegion = rName;
+            break;
+          }
+        }
+        if (matchedRegion) {
+          titleEl.innerText = `TỔNG VÙNG ${matchedRegion.toUpperCase()}`;
+        } else {
+          const names = Array.from(selectedProvinceIds).map(id => ALL_PROVINCES.find(p => p.id === id)?.name).filter(Boolean);
+          titleEl.innerText = names.slice(0, 2).join(' + ') + (names.length > 2 ? ` (+${names.length - 2})` : '');
+        }
+        titleEl.title = Array.from(selectedProvinceIds).map(id => ALL_PROVINCES.find(p => p.id === id)?.name).join(', ');
+      }
+
+      // KHOANH VÙNG BẰNG HÌNH TRÒN CHO TỪNG TỈNH ĐƯỢC CHỌN
+      selectedProvinceIds.forEach(id => {
+        const prov = ALL_PROVINCES.find(p => p.id === id);
+        if (prov && prov.center) {
+          const circle = L.circle(prov.center, {
+            radius: prov.radius || 25000,
+            color: '#E11B22',       // Viền đỏ nét đứt
+            weight: 2.5,
+            fillColor: '#FF4D4F',   // Phủ màu hồng nhẹ
+            fillOpacity: 0.16,
+            dashArray: '5, 5'
+          });
+          circle.bindTooltip(`<b>${prov.name}</b>`, { permanent: false, direction: 'center' });
+          highlightCirclesGroup.addLayer(circle);
+        }
+      });
+
+      // Tự động căn góc nhìn bao quát toàn bộ các vòng tròn được chọn
+      if (highlightCirclesGroup.getLayers().length > 0) {
+        map.fitBounds(highlightCirclesGroup.getBounds(), { padding: [30, 30], maxZoom: 13, duration: 0.8 });
+      }
+
+      renderAccordion();
       renderMarkers();
       renderStats();
     }
 
+    // --- 6. RENDER MARKERS & THỐNG KÊ CỘNG DỒN ---
     function renderMarkers() {
       markerClusterGroup.clearLayers();
 
       const pointsToDisplay = postOfficesData.filter(po => {
         if (!visibleCarriers.has(po.carrier)) return false;
-        if (selectedProvinceId) return po.provinceId === selectedProvinceId;
+        // Nếu có chọn tỉnh, chỉ hiện bưu cục thuộc các tỉnh đó
+        if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
         return true;
       });
 
@@ -600,8 +683,10 @@
 
       tbody.innerHTML = carrierNames.map(cName => {
         const conf = CARRIERS[cName];
+        
+        // Lọc bưu cục theo hãng và danh sách các tỉnh đang chọn
         const filteredOffices = postOfficesData.filter(po => 
-          po.carrier === cName && (selectedProvinceId ? po.provinceId === selectedProvinceId : true)
+          po.carrier === cName && (selectedProvinceIds.size > 0 ? selectedProvinceIds.has(po.provinceId) : true)
         );
 
         const offices = filteredOffices.length;
@@ -671,7 +756,7 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 4. THÊM / SỬA / XÓA LÊN SUPABASE CLOUD ---
+    // --- 7. CẬP NHẬT / SỬA / XÓA LÊN CLOUD ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -860,7 +945,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 5. NHẬP FILE VÀ LƯU THẲNG LÊN SUPABASE CLOUD ---
+    // --- 8. NHẬP FILE VÀ LƯU LÊN SUPABASE CLOUD ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
