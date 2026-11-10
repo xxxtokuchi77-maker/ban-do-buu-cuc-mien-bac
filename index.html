@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc</title>
+  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc (Cloud Online)</title>
   
   <!-- CSS Frameworks & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -89,9 +89,9 @@
       <h1 class="font-extrabold text-gray-800 text-sm md:text-base uppercase tracking-wide">
         Bản đồ mạng lưới bưu cục miền Bắc
       </h1>
-      <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2 py-0.5 rounded-full hidden lg:inline-flex items-center space-x-1">
+      <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2.5 py-0.5 rounded-full hidden lg:inline-flex items-center space-x-1">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span>Cloud Trực tuyến</span>
+        <span>Cloud Đồng bộ</span>
       </span>
     </div>
 
@@ -127,7 +127,7 @@
           <span>Nhãn bưu cục</span>
         </button>
 
-        <!-- BẢNG TÙY CHỌN NHÃN BƯU CỤC (DROPDOWN POPUP) -->
+        <!-- BẢNG TÙY CHỌN NHÃN BƯU CỤC -->
         <div id="label-settings-panel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-[1000] text-xs space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-gray-100">
             <span class="font-bold text-gray-800 text-sm flex items-center space-x-1.5">
@@ -139,7 +139,6 @@
             </button>
           </div>
 
-          <!-- Chế độ hiển thị -->
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Chế độ hiển thị:</label>
             <select id="cfg-label-mode" onchange="updateLabelConfig()" class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5">
@@ -149,7 +148,6 @@
             </select>
           </div>
 
-          <!-- 3 Ô chọn trường độc lập -->
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Các thông tin hiển thị trên nhãn:</label>
             <div class="space-y-1.5 bg-gray-50 p-2.5 rounded border border-gray-200">
@@ -168,7 +166,6 @@
             </div>
           </div>
 
-          <!-- Cách tính lượng đơn -->
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Định dạng lượng đơn:</label>
             <div class="flex items-center space-x-4 bg-gray-50 p-2 rounded border border-gray-200">
@@ -183,7 +180,6 @@
             </div>
           </div>
 
-          <!-- Cỡ chữ -->
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="font-semibold text-gray-700">Cỡ chữ nhãn:</label>
@@ -212,13 +208,13 @@
     </div>
   </header>
 
-  <!-- 2. NỘI DUNG CHÍNH (MAP HOẶC DATA VIEW) -->
+  <!-- 2. NỘI DUNG CHÍNH -->
   <div class="flex flex-1 relative overflow-hidden">
 
     <!-- VIEW 1: BẢN ĐỒ -->
     <div id="view-map" class="flex flex-1 w-full h-full relative">
       
-      <!-- CỘT BÊN TRÁI: DANH SÁCH TỈNH & CỤM (COLLAPSIBLE SIDEBAR) -->
+      <!-- CỘT BÊN TRÁI (COLLAPSIBLE SIDEBAR) -->
       <aside id="sidebar-container" class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0 transition-all duration-300 relative">
         <button onclick="toggleSidebar()" id="sidebar-toggle-btn" 
                 class="absolute -right-3.5 top-5 z-30 bg-white border border-gray-300 shadow-md w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 transition"
@@ -415,7 +411,7 @@
       </main>
     </div>
 
-    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU (CÓ ĐỦ BỘ LỌC + THỜI ĐIỂM CẬP NHẬT) -->
+    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU (CÓ ĐỦ BỘ LỌC + CHECKBOX XÓA NHIỀU) -->
     <div id="view-data" class="hidden flex-1 bg-white flex flex-col p-6 overflow-y-auto">
       
       <!-- TIÊU ĐỀ & NÚT TÁC VỤ -->
@@ -450,18 +446,18 @@
       <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Tìm kiếm từ khóa:</label>
-          <input type="text" id="dt-filter-search" oninput="applyDataTableFilters()" placeholder="Mã BC, Tên, Địa chỉ..." 
+          <input type="text" id="dt-filter-search" oninput="onFilterChange()" placeholder="Mã BC, Tên, Địa chỉ..." 
                  class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-red-500">
         </div>
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Lọc theo Tỉnh/Thành:</label>
-          <select id="dt-filter-province" onchange="applyDataTableFilters()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
+          <select id="dt-filter-province" onchange="onFilterChange()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
             <option value="">-- Tất cả 25 tỉnh --</option>
           </select>
         </div>
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Lọc theo Hãng:</label>
-          <select id="dt-filter-carrier" onchange="applyDataTableFilters()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
+          <select id="dt-filter-carrier" onchange="onFilterChange()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
             <option value="">-- Tất cả các hãng --</option>
             <option value="J&T">J&T Express</option>
             <option value="GHN">Giao Hàng Nhanh</option>
@@ -472,8 +468,8 @@
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Ngày cập nhật (Từ - Đến):</label>
           <div class="flex items-center space-x-1">
-            <input type="date" id="dt-filter-date-from" onchange="applyDataTableFilters()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
-            <input type="date" id="dt-filter-date-to" onchange="applyDataTableFilters()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
+            <input type="date" id="dt-filter-date-from" onchange="onFilterChange()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
+            <input type="date" id="dt-filter-date-to" onchange="onFilterChange()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
           </div>
         </div>
         <div class="flex items-end">
@@ -484,11 +480,29 @@
         </div>
       </div>
 
-      <!-- BẢNG DỮ LIỆU CÓ CỘT THỜI ĐIỂM CẬP NHẬT -->
-      <div class="mt-4 overflow-x-auto flex-1">
-        <table class="w-full text-left text-xs border border-gray-200">
-          <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+      <!-- THANH TÁC VỤ XÓA HÀNG LOẠT (MỤC 8) -->
+      <div class="mt-3 flex items-center justify-between bg-blue-50/80 border border-blue-200 rounded-lg px-3.5 py-2 text-xs">
+        <div class="flex items-center space-x-3">
+          <span>Đã chọn: <b id="dt-selected-count" class="text-blue-700 font-bold">0</b> bưu cục</span>
+          <button onclick="clearOfficeSelection()" id="btn-dt-deselect" class="hidden text-blue-600 hover:underline font-semibold">Bỏ chọn</button>
+          <span id="dt-select-all-filtered-banner" class="hidden text-gray-600">
+            | Đang chọn trang này. <button onclick="selectAllFilteredOffices()" class="text-red-600 font-bold hover:underline ml-1">Chọn tất cả <span id="dt-total-filtered-count">0</span> kết quả đang lọc</button>
+          </span>
+        </div>
+        <button onclick="openBulkDeleteModal()" id="btn-dt-bulk-delete" disabled class="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3.5 py-1.5 rounded-lg font-semibold flex items-center space-x-1.5 shadow-sm transition">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Xóa đã chọn</span>
+        </button>
+      </div>
+
+      <!-- BẢNG DỮ LIỆU CÓ CỘT CHECKBOX & THỜI ĐIỂM CẬP NHẬT -->
+      <div class="mt-3 overflow-x-auto flex-1 border border-gray-200 rounded-lg">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200 select-none">
             <tr>
+              <th class="p-2.5 w-10 text-center border-r">
+                <input type="checkbox" id="dt-select-page-cb" onchange="toggleSelectCurrentPage(this.checked)" class="rounded text-red-600 focus:ring-0 cursor-pointer" title="Chọn/Bỏ chọn trang hiện tại">
+              </th>
               <th class="p-2.5 border-r">Mã BC</th>
               <th class="p-2.5 border-r">Tên bưu cục</th>
               <th class="p-2.5 border-r">Hãng</th>
@@ -499,11 +513,48 @@
               <th class="p-2.5 border-r">Thời điểm cập nhật</th>
               <th class="p-2.5 border-r text-center">Google Maps</th>
               <th class="p-2.5 border-r text-center">Trạng thái</th>
-              <th class="p-2.5 text-center w-28">Thao tác</th>
+              <th class="p-2.5 text-center w-24">Thao tác</th>
             </tr>
           </thead>
           <tbody id="table-data-body" class="divide-y divide-gray-100"></tbody>
         </table>
+      </div>
+
+      <!-- THANH PHÂN TRANG -->
+      <div class="mt-3 flex items-center justify-between text-xs text-gray-600">
+        <div>
+          Hiển thị <span id="dt-page-range" class="font-bold">0 - 0</span> trong tổng số <span id="dt-total-rows" class="font-bold">0</span> bưu cục
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="changeDataTablePage(-1)" id="btn-dt-prev" class="px-2.5 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 font-medium">Trang trước</button>
+          <span id="dt-page-indicator" class="font-semibold text-gray-700">1 / 1</span>
+          <button onclick="changeDataTablePage(1)" id="btn-dt-next" class="px-2.5 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 font-medium">Trang sau</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: XÁC NHẬN XÓA NHIỀU BƯU CỤC (MỤC 8) -->
+  <div id="modal-bulk-delete" class="hidden fixed inset-0 bg-black/50 z-[1100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2 text-red-600">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Xác nhận xóa bưu cục đã chọn</span>
+        </h3>
+        <button onclick="closeModal('modal-bulk-delete')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="mt-3 text-xs text-gray-600 space-y-2 flex-1 overflow-hidden flex flex-col">
+        <p>Bạn có chắc chắn muốn xóa <b id="bulk-delete-count" class="text-red-600">0</b> bưu cục sau khỏi cơ sở dữ liệu?</p>
+        <div id="bulk-delete-preview-list" class="flex-1 overflow-y-auto border border-gray-200 rounded-lg p-2.5 bg-gray-50 space-y-1.5 font-mono text-[11px]"></div>
+        <p class="text-[11px] text-gray-500 italic">Thao tác này sẽ xóa vĩnh viễn trên Cloud và không thể hoàn tác.</p>
+      </div>
+      <div class="mt-4 pt-3 border-t border-gray-200 flex justify-end space-x-2">
+        <button onclick="closeModal('modal-bulk-delete')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">Hủy</button>
+        <button onclick="confirmBulkDelete()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700 flex items-center space-x-1">
+          <i class="fa-solid fa-trash-can"></i>
+          <span>Xác nhận xóa</span>
+        </button>
       </div>
     </div>
   </div>
@@ -608,7 +659,7 @@
     </div>
   </div>
 
-  <!-- Thư viện bản đồ, MarkerCluster, PapaParse, SheetJS & Supabase JS -->
+  <!-- Thư viện Leaflet, MarkerCluster, PapaParse, SheetJS & Supabase JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -616,13 +667,28 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    // CẤU HÌNH SUPABASE CỦA BẠN
+    // CẤU HÌNH SUPABASE
     const SUPABASE_URL = "https://zokrcnwmmlrfgtycydpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_OY6DzKcMi0RABPhB6C7R3A_eawc_KHx";
 
     let supabaseClient = null;
     if (SUPABASE_ANON_KEY) {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // HÀM LƯU AN TOÀN TRÁNH LỖI 'updated_at' CHƯA CÓ TRÊN DATABASE
+    async function supabaseUpsertSafe(payload) {
+      if (!supabaseClient) return null;
+      let { error } = await supabaseClient.from('post_offices').upsert(payload);
+      if (error && error.message && error.message.includes('updated_at')) {
+        const cleanPayload = Array.isArray(payload)
+          ? payload.map(item => { const { updated_at, ...rest } = item; return rest; })
+          : (({ updated_at, ...rest }) => rest)(payload);
+        const retry = await supabaseClient.from('post_offices').upsert(cleanPayload);
+        if (retry.error) throw retry.error;
+        return retry;
+      }
+      if (error) throw error;
     }
 
     // --- 1. DANH SÁCH 25 TỈNH MIỀN BẮC & TỌA ĐỘ VÒNG KHOANH ---
@@ -677,7 +743,7 @@
       VALID_PROVINCE_CODES.add(p.id);
     }));
 
-    // Cấu hình chuẩn màu sắc và mã CSS của từng hãng
+    // Cấu hình chuẩn màu sắc từng hãng
     const CARRIERS = {
       'J&T': { color: '#E11B22', class: 'pin-jt', cssKey: 'jt', label: 'J&T' },
       'GHN': { color: '#0052CC', class: 'pin-ghn', cssKey: 'ghn', label: 'GHN' },
@@ -685,7 +751,6 @@
       'SPX': { color: '#F05326', class: 'pin-spx', cssKey: 'spx', label: 'SPX' }
     };
 
-    // Tự động nhận diện hãng chuẩn xác
     function detectCarrier(name, desc, rawCarrier) {
       const full = (String(rawCarrier) + ' ' + String(name) + ' ' + String(desc)).toLowerCase();
       if (full.includes('ghn') || full.includes('giao hàng nhanh') || full.includes('giaohangnhanh')) return 'GHN';
@@ -695,7 +760,6 @@
       return rawCarrier || 'J&T';
     }
 
-    // Hàm định dạng ngày giờ chuẩn Việt Nam dd/MM/yyyy HH:mm:ss
     function formatDateTimeVN(isoString) {
       if (!isoString) return 'Chưa ghi nhận';
       try {
@@ -717,17 +781,17 @@
     let isSidebarCollapsed = false;
     let showHighlightCircles = true;
 
-    // QUẢN LÝ GOM CỤM RIÊNG TỪNG HÃNG
+    // GOM CỤM RIÊNG TỪNG HÃNG
     let carrierClusterGroups = {};
 
-    // CẤU HÌNH NHÃN BƯU CỤC (LƯU TRÊN LOCALSTORAGE)
+    // CẤU HÌNH NHÃN BƯU CỤC
     let labelConfig = JSON.parse(localStorage.getItem('saved_label_config')) || {
-      mode: 'auto',          // 'auto', 'always', 'none'
+      mode: 'auto',
       showName: true,
       showCode: true,
       showOrders: true,
-      orderType: 'daily',    // 'daily', 'monthly'
-      fontSize: 11           // 10 to 14
+      orderType: 'daily',
+      fontSize: 11
     };
 
     // TRẠNG THÁI ẨN / HIỆN 2 Ô THÔNG TIN
@@ -735,6 +799,12 @@
       showAreaStats: true,
       showLegend: true
     };
+
+    // QUẢN LÝ TÍCH CHỌN XÓA (MỤC 8)
+    let selectedOfficeIds = new Set(); // Chứa các id duy nhất (Hãng_Mã)
+    let currentFilteredOffices = [];
+    let dtCurrentPage = 1;
+    const dtPageSize = 50;
 
     // --- 2. TẢI TỪ SUPABASE CLOUD ---
     async function loadDataFromCloud() {
@@ -746,8 +816,9 @@
         
         postOfficesData = (data || []).map(row => {
           const determinedCarrier = detectCarrier(row.name, row.address, row.carrier);
+          const uniqueId = row.id && row.id.includes('_') ? row.id : `${determinedCarrier}_${row.code}`;
           return {
-            id: row.id || row.code,
+            id: uniqueId,
             code: row.code,
             name: row.name,
             carrier: determinedCarrier,
@@ -784,7 +855,7 @@
       else el.innerText = 'Chưa ghi nhận';
     }
 
-    // --- 3. KHỞI TẠO BẢN ĐỒ VÀ GOM CỤM ĐỘC LẬP TỪNG HÃNG ---
+    // --- 3. KHỞI TẠO BẢN ĐỒ VÀ GOM CỤM RIÊNG TỪNG HÃNG ---
     function initMap() {
       map = L.map('map', { zoomControl: true }).setView([21.3, 105.5], 8);
 
@@ -795,7 +866,6 @@
         keepBuffer: 8
       }).addTo(map);
 
-      // CẬP NHẬT TRẠNG THÁI ZOOM ĐỂ HIỆN NHÃN TỰ ĐỘNG
       function updateMapZoomClass() {
         const container = map.getContainer();
         if (labelConfig.mode === 'always') {
@@ -815,7 +885,7 @@
       setTimeout(() => { map.invalidateSize(); updateMapZoomClass(); }, 300);
       window.addEventListener('resize', () => { map.invalidateSize(); });
 
-      // KHỞI TẠO 4 NHÓM GOM CỤM ĐỘC LẬP THEO TỪNG HÃNG (OFFSET TRÁNH ĐÈ NHAU)
+      // CỤM RIÊNG TỪNG HÃNG CÓ OFFSET TRÁNH CHỒNG LÊN NHAU
       const carrierOffsets = {
         'J&T': [0, 0],
         'GHN': [14, -10],
@@ -848,13 +918,11 @@
 
       highlightCirclesGroup = L.featureGroup().addTo(map);
 
-      // Điền danh sách tỉnh vào các dropdown
       const provOptions = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
       document.getElementById('office-modal-province').innerHTML = provOptions;
       document.getElementById('subzone-province').innerHTML = provOptions;
       document.getElementById('dt-filter-province').innerHTML = '<option value="">-- Tất cả 25 tỉnh --</option>' + provOptions;
 
-      // Áp dụng cấu hình ban đầu
       applyWidgetState();
       syncLabelSettingsToUI();
       renderAccordion();
@@ -986,7 +1054,6 @@
 
     // --- 6. RENDER MARKERS KÈM NHÃN 1 DÒNG VÀ GOM CỤM RIÊNG TỪNG HÃNG (REQ 1 & 7) ---
     function renderMarkers() {
-      // Xóa điểm trên từng nhóm hãng
       Object.keys(carrierClusterGroups).forEach(k => carrierClusterGroups[k].clearLayers());
 
       const pointsToDisplay = postOfficesData.filter(po => {
@@ -1001,7 +1068,7 @@
 
         const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
 
-        // TẠO NỘI DUNG NHÃN 1 DÒNG CHỈ GHÉP CÁC TRƯỜNG ĐƯỢC CHỌN VỚI ' | '
+        // GHÉP NHÃN 1 DÒNG
         let labelParts = [];
         if (labelConfig.showName) {
           labelParts.push(po.name || 'Bưu cục');
@@ -1056,7 +1123,6 @@
 
         marker.on('click', () => showOfficeDetail(po));
 
-        // NẠP ĐIỂM VÀO ĐÚNG CỤM CỦA HÃNG ĐÓ
         if (carrierClusterGroups[po.carrier]) {
           carrierClusterGroups[po.carrier].addLayer(marker);
         }
@@ -1158,7 +1224,14 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 7. BỘ LỌC ĐA ĐIỀU KIỆN TRONG TAB CẬP NHẬT SỐ LIỆU (REQ 5 & 6) ---
+    // --- 7. BỘ LỌC ĐA ĐIỀU KIỆN & CHỨC NĂNG XÓA HÀNG LOẠT (REQ 5 & 8) ---
+    function onFilterChange() {
+      selectedOfficeIds.clear();
+      updateSelectionUI();
+      dtCurrentPage = 1;
+      applyDataTableFilters();
+    }
+
     function applyDataTableFilters() {
       const keyword = document.getElementById('dt-filter-search').value.trim().toLowerCase();
       const prov = document.getElementById('dt-filter-province').value;
@@ -1166,7 +1239,7 @@
       const dateFrom = document.getElementById('dt-filter-date-from').value;
       const dateTo = document.getElementById('dt-filter-date-to').value;
 
-      const filtered = postOfficesData.filter(po => {
+      currentFilteredOffices = postOfficesData.filter(po => {
         if (keyword) {
           const match = (po.code || '').toLowerCase().includes(keyword) ||
                         (po.name || '').toLowerCase().includes(keyword) ||
@@ -1185,7 +1258,7 @@
         return true;
       });
 
-      renderDataTableRows(filtered);
+      renderDataTableRows();
     }
 
     function resetDataTableFilters() {
@@ -1194,23 +1267,52 @@
       document.getElementById('dt-filter-carrier').value = '';
       document.getElementById('dt-filter-date-from').value = '';
       document.getElementById('dt-filter-date-to').value = '';
-      renderDataTableRows(postOfficesData);
+      selectedOfficeIds.clear();
+      updateSelectionUI();
+      dtCurrentPage = 1;
+      currentFilteredOffices = [...postOfficesData];
+      renderDataTableRows();
     }
 
     function renderDataTable() {
       applyDataTableFilters();
     }
 
-    function renderDataTableRows(list) {
+    function renderDataTableRows() {
       const tbody = document.getElementById('table-data-body');
-      tbody.innerHTML = list.map(po => {
+      const total = currentFilteredOffices.length;
+      const totalPages = Math.ceil(total / dtPageSize) || 1;
+      if (dtCurrentPage > totalPages) dtCurrentPage = totalPages;
+      if (dtCurrentPage < 1) dtCurrentPage = 1;
+
+      const startIdx = (dtCurrentPage - 1) * dtPageSize;
+      const endIdx = Math.min(startIdx + dtPageSize, total);
+      const pageRows = currentFilteredOffices.slice(startIdx, endIdx);
+
+      document.getElementById('dt-page-range').innerText = total > 0 ? `${startIdx + 1} - ${endIdx}` : '0 - 0';
+      document.getElementById('dt-total-rows').innerText = total;
+      document.getElementById('dt-page-indicator').innerText = `${dtCurrentPage} / ${totalPages}`;
+      document.getElementById('btn-dt-prev').disabled = dtCurrentPage <= 1;
+      document.getElementById('btn-dt-next').disabled = dtCurrentPage >= totalPages;
+
+      const pageCb = document.getElementById('dt-select-page-cb');
+      const allPageSelected = pageRows.length > 0 && pageRows.every(r => selectedOfficeIds.has(r.id));
+      pageCb.checked = allPageSelected;
+
+      tbody.innerHTML = pageRows.map(po => {
         const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+        const isChecked = selectedOfficeIds.has(po.id);
         const gmapsLink = (po.lat && po.lng) 
           ? `<a href="https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}" target="_blank" class="text-blue-600 font-bold hover:underline">Xem Maps &rarr;</a>` 
           : '—';
         const formattedDate = formatDateTimeVN(po.updatedAt);
+
         return `
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 ${isChecked ? 'bg-red-50/40' : ''}">
+            <td class="p-2.5 text-center border-r">
+              <input type="checkbox" onchange="toggleSelectOfficeRow('${po.id}', this.checked)" ${isChecked ? 'checked' : ''} 
+                     class="rounded text-red-600 focus:ring-0 cursor-pointer">
+            </td>
             <td class="p-2.5 border-r font-bold">${po.code}</td>
             <td class="p-2.5 border-r">${po.name}</td>
             <td class="p-2.5 border-r font-bold" style="color:${conf.color}">${po.carrier}</td>
@@ -1234,7 +1336,117 @@
       }).join('');
     }
 
-    // --- 8. QUẢN LÝ VÙNG NHỎ, MODAL & SUPABASE SYNC ---
+    function changeDataTablePage(delta) {
+      dtCurrentPage += delta;
+      renderDataTableRows();
+    }
+
+    // --- 8. LOGIC CHỌN NHIỀU BƯU CỤC ĐỂ XÓA (MỤC 8) ---
+    function toggleSelectOfficeRow(id, isChecked) {
+      if (isChecked) selectedOfficeIds.add(id);
+      else selectedOfficeIds.delete(id);
+      updateSelectionUI();
+    }
+
+    function toggleSelectCurrentPage(isChecked) {
+      const startIdx = (dtCurrentPage - 1) * dtPageSize;
+      const endIdx = Math.min(startIdx + dtPageSize, currentFilteredOffices.length);
+      const pageRows = currentFilteredOffices.slice(startIdx, endIdx);
+
+      pageRows.forEach(r => {
+        if (isChecked) selectedOfficeIds.add(r.id);
+        else selectedOfficeIds.delete(r.id);
+      });
+      updateSelectionUI();
+    }
+
+    function selectAllFilteredOffices() {
+      currentFilteredOffices.forEach(r => selectedOfficeIds.add(r.id));
+      updateSelectionUI();
+    }
+
+    function clearOfficeSelection() {
+      selectedOfficeIds.clear();
+      updateSelectionUI();
+    }
+
+    function updateSelectionUI() {
+      const count = selectedOfficeIds.size;
+      document.getElementById('dt-selected-count').innerText = count;
+
+      const btnDeselect = document.getElementById('btn-dt-deselect');
+      const btnBulkDelete = document.getElementById('btn-dt-bulk-delete');
+      const banner = document.getElementById('dt-select-all-filtered-banner');
+
+      if (count > 0) {
+        btnDeselect.classList.remove('hidden');
+        btnBulkDelete.disabled = false;
+        
+        if (currentFilteredOffices.length > dtPageSize && count < currentFilteredOffices.length) {
+          banner.classList.remove('hidden');
+          document.getElementById('dt-total-filtered-count').innerText = currentFilteredOffices.length;
+        } else {
+          banner.classList.add('hidden');
+        }
+      } else {
+        btnDeselect.classList.add('hidden');
+        btnBulkDelete.disabled = true;
+        banner.classList.add('hidden');
+      }
+
+      renderDataTableRows();
+    }
+
+    function openBulkDeleteModal() {
+      if (selectedOfficeIds.size === 0) return;
+      
+      const count = selectedOfficeIds.size;
+      document.getElementById('bulk-delete-count').innerText = count;
+
+      const selectedList = postOfficesData.filter(po => selectedOfficeIds.has(po.id));
+      const previewListEl = document.getElementById('bulk-delete-preview-list');
+
+      previewListEl.innerHTML = selectedList.map(po => `
+        <div class="flex items-center justify-between p-1 bg-white border border-gray-100 rounded">
+          <span><b class="text-red-600">[${po.carrier}]</b> <b>${po.code}</b> - ${po.name}</span>
+          <span class="text-gray-400">(${po.provinceId})</span>
+        </div>
+      `).join('');
+
+      openModal('modal-bulk-delete');
+    }
+
+    async function confirmBulkDelete() {
+      if (selectedOfficeIds.size === 0) return;
+
+      const idsToDelete = Array.from(selectedOfficeIds);
+
+      try {
+        if (supabaseClient) {
+          for (let i = 0; i < idsToDelete.length; i += 200) {
+            const chunk = idsToDelete.slice(i, i + 200);
+            const { error } = await supabaseClient.from('post_offices').delete().in('id', chunk);
+            if (error) throw error;
+          }
+        }
+
+        postOfficesData = postOfficesData.filter(po => !selectedOfficeIds.has(po.id));
+        selectedOfficeIds.clear();
+
+        updateSelectionUI();
+        updateLastUpdateBanner();
+        renderMarkers();
+        renderStats();
+        closeModal('modal-bulk-delete');
+        closeOfficeCard();
+
+        alert(`ĐÃ XÓA THÀNH CÔNG!\n- Đã xóa ${idsToDelete.length} bưu cục đã chọn khỏi hệ thống.`);
+      } catch (err) {
+        alert(`Xóa thất bại: ${err.message}. Giữ nguyên các bản ghi chưa xóa.`);
+      }
+    }
+
+    // --- 9. XỬ LÝ VÙNG NHỎ, MODAL & CHỌN TỈNH ---
     function openCreateSubZoneModal() {
       document.getElementById('subzone-name').value = '';
       const currentProv = Array.from(selectedProvinceIds)[0] || 'HNI';
@@ -1561,15 +1773,21 @@
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
 
-      if (confirm(`Bạn có chắc muốn xóa [${po.code} - ${po.name}] khỏi Cloud không?`)) {
-        if (supabaseClient) {
-          await supabaseClient.from('post_offices').delete().eq('id', id);
+      if (confirm(`Bạn có chắc muốn xóa [${po.carrier}] ${po.code} - ${po.name}?`)) {
+        try {
+          if (supabaseClient) {
+            const { error } = await supabaseClient.from('post_offices').delete().eq('id', id);
+            if (error) throw error;
+          }
+          postOfficesData = postOfficesData.filter(item => item.id != id);
+          selectedOfficeIds.delete(id);
+          updateSelectionUI();
+          renderMarkers();
+          renderStats();
+          closeOfficeCard();
+        } catch (err) {
+          alert(`Xóa thất bại: ${err.message}`);
         }
-        postOfficesData = postOfficesData.filter(item => item.id != id);
-        renderMarkers();
-        renderStats();
-        renderDataTable();
-        closeOfficeCard();
       }
     }
 
@@ -1583,9 +1801,10 @@
           await supabaseClient.from('post_offices').delete().neq('id', 'dummy');
         }
         postOfficesData = [];
+        selectedOfficeIds.clear();
+        updateSelectionUI();
         renderMarkers();
         renderStats();
-        renderDataTable();
         closeOfficeCard();
         alert("Đã làm sạch toàn bộ bưu cục trên Cloud!");
       }
@@ -1622,7 +1841,7 @@
       }
 
       const hasCoord = !isNaN(lat) && !isNaN(lng);
-      const recordId = code;
+      const recordId = `${carrier}_${code}`;
       const nowIso = new Date().toISOString();
 
       const payload = {
@@ -1639,18 +1858,15 @@
         updated_at: nowIso
       };
 
-      if (supabaseClient) {
-        const { error } = await supabaseClient.from('post_offices').upsert(payload);
-        if (error) {
-          alert("Lỗi lưu lên Supabase: " + error.message);
-          return;
-        }
+      try {
+        await supabaseUpsertSafe(payload);
+        await loadDataFromCloud();
+        alert("Đã lưu bưu cục thành công lên Cloud!");
+        closeModal('modal-office');
+        closeOfficeCard();
+      } catch (err) {
+        alert("Lỗi lưu lên Supabase: " + err.message);
       }
-
-      await loadDataFromCloud();
-      alert("Đã lưu bưu cục thành công lên Cloud!");
-      closeModal('modal-office');
-      closeOfficeCard();
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
@@ -1675,7 +1891,7 @@
     function exportCurrentDataToCSV() {
       let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe,Thời điểm cập nhật\n";
       postOfficesData.forEach(po => {
-        csv += `"${po.code}","${po.name}","${po.carrier}","${po.provinceId}","${po.lat || ''}","${po.lng || ''}","${po.address || ''}","${po.dailyOrders || ''}","${po.trucks || ''}","${formatDateTimeVN(po.updatedAt)}"\n`;
+        csv += `"${po.code}","${po.name}","${po.carrier}","${po.provinceId}","${po.lat || ''}","${po.lng || ''}","${po.address || ''}","${po.dailyOrders || ''}","${po.trucks || ''}"\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -1700,7 +1916,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 9. BỘ NHẬP FILE ĐA NĂNG KÈM GHI NHẬN THỜI ĐIỂM ĐỒNG BỘ ---
+    // --- 10. NHẬP FILE VỚI ĐỊNH DANH DUY NHẤT (CHỐNG TRÙNG VÀ PHÂN BIỆT HÃNG) ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1760,7 +1976,7 @@
       let accepted = 0;
       let rejectedOutOfBounds = 0;
       let uploadBatch = [];
-      const batchTimestamp = new Date().toISOString(); // THỜI ĐIỂM DÙNG CHUNG CHO CẢ LẦN NHẬP
+      const batchTimestamp = new Date().toISOString();
 
       rows.forEach((row, idx) => {
         const getField = (candidates) => {
@@ -1801,7 +2017,7 @@
         const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
 
         uploadBatch.push({
-          id: code,
+          id: `${carrier}_${code}`,
           code: code,
           name: name,
           carrier: carrier,
@@ -1819,7 +2035,7 @@
       if (supabaseClient && uploadBatch.length > 0) {
         for (let i = 0; i < uploadBatch.length; i += 500) {
           const chunk = uploadBatch.slice(i, i + 500);
-          await supabaseClient.from('post_offices').upsert(chunk);
+          await supabaseUpsertSafe(chunk);
         }
       }
 
@@ -1876,7 +2092,7 @@
 
         if (VALID_PROVINCE_CODES.has(provId)) {
           uploadBatch.push({
-            id: code,
+            id: `${carrier}_${code}`,
             code: code,
             name: name,
             carrier: carrier,
@@ -1894,12 +2110,12 @@
       if (supabaseClient && uploadBatch.length > 0) {
         for (let i = 0; i < uploadBatch.length; i += 500) {
           const chunk = uploadBatch.slice(i, i + 500);
-          await supabaseClient.from('post_offices').upsert(chunk);
+          await supabaseUpsertSafe(chunk);
         }
       }
 
       await loadDataFromCloud();
-      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã nạp thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
+      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã cập nhật thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
     }
 
     window.onload = initMap;
