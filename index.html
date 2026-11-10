@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc</title>
+  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc (Cloud Online)</title>
   
   <!-- CSS Frameworks -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -41,8 +41,9 @@
       <h1 class="font-extrabold text-gray-800 text-base md:text-lg uppercase tracking-wide">
         Bản đồ mạng lưới bưu cục miền Bắc
       </h1>
-      <span class="text-xs text-red-700 bg-red-50 border border-red-200 font-medium px-2.5 py-0.5 rounded-full hidden sm:inline-block">
-        25 Tỉnh/Thành
+      <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center space-x-1">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span>Cloud Trực tuyến</span>
       </span>
     </div>
 
@@ -55,7 +56,7 @@
         <i class="fa-solid fa-table-list"></i>
         <span>Cập nhật số liệu</span>
       </button>
-      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition" title="Tải file mẫu Excel">
+      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-solid fa-file-arrow-down text-blue-600"></i>
         <span>File mẫu Excel</span>
       </button>
@@ -97,8 +98,8 @@
             <div>
               <h2 id="stats-target-title" class="text-base font-extrabold text-red-600 uppercase tracking-wide">TOÀN MIỀN BẮC</h2>
               <div class="text-[11px] text-gray-500 flex items-center space-x-1 mt-0.5">
-                <i class="fa-solid fa-circle-exclamation text-amber-500"></i>
-                <span id="stats-data-status">Số liệu đã ghi nhận — chưa đầy đủ</span>
+                <i class="fa-solid fa-cloud text-blue-500"></i>
+                <span id="stats-data-status">Dữ liệu Cloud đồng bộ trực tuyến</span>
               </div>
             </div>
             
@@ -128,9 +129,9 @@
 
           <div class="mt-3.5 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
             <span class="text-[11px] text-gray-400 font-medium">— : Chưa có dữ liệu</span>
-            <button onclick="openAddMetricModal()" class="text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 bg-red-50/60 px-3 py-1 rounded font-semibold flex items-center space-x-1 transition">
+            <button onclick="openNewOfficeModal()" class="text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 bg-red-50/60 px-3 py-1 rounded font-semibold flex items-center space-x-1 transition">
               <i class="fa-solid fa-plus text-[10px]"></i>
-              <span>Bổ sung số liệu</span>
+              <span>Thêm bưu cục mới</span>
             </button>
           </div>
         </div>
@@ -216,8 +217,8 @@
     <div id="view-data" class="hidden flex-1 bg-white flex flex-col p-6 overflow-y-auto">
       <div class="flex items-center justify-between pb-4 border-b border-gray-200">
         <div>
-          <h2 class="text-lg font-bold text-gray-800">Quản lý & Cập nhật số liệu bưu cục (25 Tỉnh Miền Bắc)</h2>
-          <p class="text-xs text-gray-500">Mọi chỉnh sửa, thêm mới hoặc xóa đều được tự động lưu vĩnh viễn trên máy</p>
+          <h2 class="text-lg font-bold text-gray-800">Quản lý bưu cục trực tuyến (25 Tỉnh Miền Bắc)</h2>
+          <p class="text-xs text-gray-500">Dữ liệu được lưu vĩnh viễn trên Supabase Cloud - Ai mở link cũng xem được</p>
         </div>
         <div class="flex items-center space-x-2.5">
           <button onclick="downloadTemplateExcel()" class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded text-xs font-semibold flex items-center space-x-1">
@@ -226,21 +227,19 @@
           </button>
           <button onclick="exportCurrentDataToCSV()" class="px-3 py-1.5 border border-green-600 text-green-700 hover:bg-green-50 rounded text-xs font-semibold flex items-center space-x-1">
             <i class="fa-solid fa-file-excel"></i>
-            <span>Xuất dữ liệu</span>
+            <span>Xuất file CSV</span>
           </button>
           <button onclick="openNewOfficeModal()" class="px-3.5 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 flex items-center space-x-1">
             <i class="fa-solid fa-plus"></i>
             <span>Thêm bưu cục</span>
           </button>
-          <!-- NÚT XÓA TẤT CẢ DỮ LIỆU ĐÃ ĐƯỢC THÊM TRỰC TIẾP TẠI ĐÂY -->
           <button onclick="clearAllData()" class="px-3 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded text-xs font-semibold flex items-center space-x-1">
             <i class="fa-solid fa-trash-can"></i>
-            <span>Xóa tất cả</span>
+            <span>Xóa tất cả (Cloud)</span>
           </button>
         </div>
       </div>
 
-      <!-- Bảng danh sách bưu cục -->
       <div class="mt-4 overflow-x-auto flex-1">
         <table class="w-full text-left text-xs border border-gray-200">
           <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
@@ -263,50 +262,7 @@
     </div>
   </div>
 
-  <!-- MODAL 1: BỔ SUNG SỐ LIỆU TỔNG -->
-  <div id="modal-metric" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-      <div class="flex items-center justify-between pb-3 border-b border-gray-200">
-        <h3 class="font-bold text-gray-800 text-sm">Bổ sung / Cập nhật số liệu</h3>
-        <button onclick="closeModal('modal-metric')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="mt-4 space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-gray-700 mb-1">Địa bàn:</label>
-          <input type="text" id="metric-modal-province" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-1.5 font-bold text-gray-700">
-        </div>
-        <div>
-          <label class="block font-semibold text-gray-700 mb-1">Hãng vận chuyển:</label>
-          <select id="metric-modal-carrier" class="w-full border border-gray-300 rounded px-3 py-1.5">
-            <option value="J&T">J&T Express</option>
-            <option value="GHN">GHN</option>
-            <option value="Viettel Post">Viettel Post</option>
-            <option value="SPX">SPX Express</option>
-          </select>
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-gray-700 mb-1">Sản lượng (Đơn/ngày):</label>
-            <input type="number" id="metric-modal-orders" placeholder="12500" class="w-full border border-gray-300 rounded px-3 py-1.5">
-          </div>
-          <div>
-            <label class="block font-semibold text-gray-700 mb-1">Số lượng xe:</label>
-            <input type="number" id="metric-modal-trucks" placeholder="18" class="w-full border border-gray-300 rounded px-3 py-1.5">
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold text-gray-700 mb-1">Kỳ báo cáo:</label>
-          <input type="text" id="metric-modal-period" value="2026-11" readonly class="w-full bg-gray-100 border border-gray-300 rounded px-3 py-1.5 text-gray-600">
-        </div>
-      </div>
-      <div class="mt-6 flex justify-end space-x-2">
-        <button onclick="closeModal('modal-metric')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
-        <button onclick="saveMetricModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu số liệu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2: THÊM / SỬA BƯU CỤC -->
+  <!-- MODAL: THÊM / SỬA BƯU CỤC -->
   <div id="modal-office" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
       <div class="flex items-center justify-between pb-3 border-b border-gray-200">
@@ -365,17 +321,30 @@
       </div>
       <div class="mt-6 flex justify-end space-x-2">
         <button onclick="closeModal('modal-office')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
-        <button onclick="saveOfficeModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu thông tin</button>
+        <button onclick="saveOfficeModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu lên Cloud</button>
       </div>
     </div>
   </div>
 
-  <!-- Thư viện bản đồ, đọc CSV & Đọc Excel XLSX chuẩn quốc tế -->
+  <!-- Thư viện Leaflet, PapaParse, SheetJS & Supabase JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
+    // =========================================================================
+    // ĐÃ TỰ ĐIỀN PROJECT URL CỦA BẠN. BẠN CHỈ CẦN DÁN ANON KEY VÀO DÒNG DƯỚI:
+    // =========================================================================
+    const SUPABASE_URL = "https://zokrcnwmmlrfgtycydpw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_OY6DzKcMi0RABPhB6C7R3A_eawc_KHx";
+
+    let supabaseClient = null;
+    if (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('DÁN_ANON_KEY')) {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
     // --- 1. ĐỊNH NGHĨA 3 VÙNG (25 TỈNH) ---
     const NORTH_REGIONS = {
       "Hà Nội": [
@@ -435,18 +404,42 @@
       'SPX': { color: '#F05326', class: 'pin-spx', label: 'SPX' }
     };
 
-    // --- 2. DỮ LIỆU & LOCALSTORAGE ---
-    let postOfficesData = JSON.parse(localStorage.getItem('saved_post_offices')) || [];
-    let provinceSummaryMetrics = JSON.parse(localStorage.getItem('saved_metrics')) || {};
-
-    function persistData() {
-      localStorage.setItem('saved_post_offices', JSON.stringify(postOfficesData));
-      localStorage.setItem('saved_metrics', JSON.stringify(provinceSummaryMetrics));
-    }
-
+    let postOfficesData = [];
     let selectedProvinceId = null;
     let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
     let map, markerClusterGroup, highlightLayer;
+
+    // --- 2. TẢI DỮ LIỆU TỪ SUPABASE CLOUD (KHI MỞ TRANG) ---
+    async function loadDataFromCloud() {
+      if (!supabaseClient) {
+        console.warn("Chưa cấu hình Anon Key cho Supabase.");
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient.from('post_offices').select('*');
+        if (error) throw error;
+        
+        postOfficesData = (data || []).map(row => ({
+          id: row.id,
+          code: row.code,
+          name: row.name,
+          carrier: row.carrier,
+          provinceId: row.province_id,
+          lat: row.lat,
+          lng: row.lng,
+          address: row.address,
+          dailyOrders: row.daily_orders,
+          trucks: row.trucks
+        }));
+
+        renderMarkers();
+        renderStats();
+        renderDataTable();
+      } catch (err) {
+        console.error("Lỗi kết nối Cloud:", err.message);
+      }
+    }
 
     // --- 3. KHỞI TẠO BẢN ĐỒ ---
     function initMap() {
@@ -469,12 +462,9 @@
       provSelect.innerHTML = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
 
       renderAccordion();
-      renderMarkers();
-      renderStats();
-      renderDataTable();
+      loadDataFromCloud();
     }
 
-    // --- 4. RENDER DANH SÁCH 3 VÙNG ACCORDION ---
     function renderAccordion(searchTerm = '') {
       const container = document.getElementById('accordion-container');
       container.innerHTML = '';
@@ -517,7 +507,6 @@
 
     function filterProvinces(term) { renderAccordion(term); }
 
-    // --- 5. TƯƠNG TÁC CHỌN TỈNH VÀ NỔI BẬT ĐỊA BÀN ---
     function selectProvince(provId) {
       selectedProvinceId = provId;
       const prov = ALL_PROVINCES.find(p => p.id === provId);
@@ -556,7 +545,6 @@
       renderStats();
     }
 
-    // --- 6. RENDER MARKERS & THỐNG KÊ ---
     function renderMarkers() {
       markerClusterGroup.clearLayers();
 
@@ -612,46 +600,30 @@
 
       tbody.innerHTML = carrierNames.map(cName => {
         const conf = CARRIERS[cName];
-        let orders = null;
-        let offices = 0;
-        let trucks = 0;
+        const filteredOffices = postOfficesData.filter(po => 
+          po.carrier === cName && (selectedProvinceId ? po.provinceId === selectedProvinceId : true)
+        );
+
+        const offices = filteredOffices.length;
+        let sumOrders = 0;
+        let hasOrderData = false;
+        let sumTrucks = 0;
         let hasTruckData = false;
 
-        if (selectedProvinceId && provinceSummaryMetrics[selectedProvinceId]?.[cName]) {
-          const s = provinceSummaryMetrics[selectedProvinceId][cName];
-          orders = isDaily ? s.daily : (s.daily ? s.daily * 30 : null);
-          offices = s.offices;
-          trucks = s.trucks;
-          hasTruckData = trucks !== null;
-        } else {
-          const filteredOffices = postOfficesData.filter(po => 
-            po.carrier === cName && 
-            (selectedProvinceId ? po.provinceId === selectedProvinceId : true)
-          );
+        filteredOffices.forEach(po => {
+          if (po.dailyOrders !== null && po.dailyOrders !== undefined) {
+            sumOrders += isDaily ? po.dailyOrders : po.dailyOrders * 30;
+            hasOrderData = true;
+          }
+          if (po.trucks !== null && po.trucks !== undefined) {
+            sumTrucks += po.trucks;
+            hasTruckData = true;
+          }
+        });
 
-          offices = filteredOffices.length;
-          let sumOrders = 0;
-          let hasOrderData = false;
-          let sumTrucks = 0;
-
-          filteredOffices.forEach(po => {
-            if (po.dailyOrders !== null && po.dailyOrders !== undefined) {
-              sumOrders += isDaily ? po.dailyOrders : po.dailyOrders * 30;
-              hasOrderData = true;
-            }
-            if (po.trucks !== null && po.trucks !== undefined) {
-              sumTrucks += po.trucks;
-              hasTruckData = true;
-            }
-          });
-
-          orders = hasOrderData ? sumOrders : null;
-          trucks = hasTruckData ? sumTrucks : null;
-        }
-
-        const ordersDisplay = orders !== null ? Math.round(orders).toLocaleString('vi-VN') : '—';
+        const ordersDisplay = hasOrderData ? Math.round(sumOrders).toLocaleString('vi-VN') : '—';
         const officeDisplay = offices > 0 ? offices : '—';
-        const truckDisplay = trucks !== null ? trucks : '—';
+        const truckDisplay = hasTruckData ? sumTrucks : '—';
 
         return `
           <tr class="hover:bg-gray-50/80">
@@ -699,6 +671,7 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
+    // --- 4. THÊM / SỬA / XÓA LÊN SUPABASE CLOUD ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -718,13 +691,15 @@
       openModal('modal-office');
     }
 
-    function deleteOffice(id) {
+    async function deleteOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
 
-      if (confirm(`Bạn có chắc chắn muốn xóa bưu cục [${po.code} - ${po.name}] không?`)) {
+      if (confirm(`Bạn có chắc muốn xóa [${po.code} - ${po.name}] khỏi Cloud không?`)) {
+        if (supabaseClient) {
+          await supabaseClient.from('post_offices').delete().eq('id', id);
+        }
         postOfficesData = postOfficesData.filter(item => item.id != id);
-        persistData();
         renderMarkers();
         renderStats();
         renderDataTable();
@@ -732,20 +707,21 @@
       }
     }
 
-    // --- NÚT XÓA TOÀN BỘ BƯU CỤC ---
-    function clearAllData() {
+    async function clearAllData() {
       if (postOfficesData.length === 0) {
-        alert("Hiện tại danh sách đang trống, không có bưu cục nào để xóa!");
+        alert("Hiện không có bưu cục nào!");
         return;
       }
-      if (confirm(`CẢNH BÁO: Bạn có chắc chắn muốn xóa TOÀN BỘ ${postOfficesData.length} bưu cục không?\nThao tác này sẽ làm sạch danh sách và không thể hoàn tác!`)) {
+      if (confirm(`CẢNH BÁO: Xóa TOÀN BỘ ${postOfficesData.length} bưu cục trên CLOUD?\nTất cả người xem khác sẽ thấy bản đồ trống!`)) {
+        if (supabaseClient) {
+          await supabaseClient.from('post_offices').delete().neq('id', 'dummy');
+        }
         postOfficesData = [];
-        persistData();
         renderMarkers();
         renderStats();
         renderDataTable();
         closeOfficeCard();
-        alert("Đã xóa sạch toàn bộ bưu cục!");
+        alert("Đã làm sạch toàn bộ bưu cục trên Cloud!");
       }
     }
 
@@ -762,7 +738,7 @@
       openModal('modal-office');
     }
 
-    function saveOfficeModal() {
+    async function saveOfficeModal() {
       const editId = document.getElementById('editing-office-id').value;
       const code = document.getElementById('office-modal-code').value.trim();
       const name = document.getElementById('office-modal-name').value.trim();
@@ -780,78 +756,37 @@
       }
 
       const hasCoord = !isNaN(lat) && !isNaN(lng);
+      const recordId = editId || `BC-${Date.now()}`;
 
-      if (editId) {
-        const index = postOfficesData.findIndex(item => item.id == editId);
-        if (index !== -1) {
-          postOfficesData[index] = {
-            ...postOfficesData[index],
-            code, name, carrier, provinceId,
-            lat: hasCoord ? lat : null,
-            lng: hasCoord ? lng : null,
-            address,
-            dailyOrders: !isNaN(orders) ? orders : null,
-            trucks: !isNaN(trucks) ? trucks : null
-          };
+      const payload = {
+        id: recordId,
+        code: code,
+        name: name,
+        carrier: carrier,
+        province_id: provinceId,
+        lat: hasCoord ? lat : null,
+        lng: hasCoord ? lng : null,
+        address: address,
+        daily_orders: !isNaN(orders) ? orders : null,
+        trucks: !isNaN(trucks) ? trucks : null
+      };
+
+      if (supabaseClient) {
+        const { error } = await supabaseClient.from('post_offices').upsert(payload);
+        if (error) {
+          alert("Lỗi lưu lên Supabase: " + error.message);
+          return;
         }
-      } else {
-        postOfficesData.push({
-          id: Date.now().toString(),
-          code, name, carrier, provinceId,
-          lat: hasCoord ? lat : null,
-          lng: hasCoord ? lng : null,
-          address,
-          dailyOrders: !isNaN(orders) ? orders : null,
-          trucks: !isNaN(trucks) ? trucks : null
-        });
       }
 
-      persistData();
-      alert("Đã lưu dữ liệu thành công!");
+      await loadDataFromCloud();
+      alert("Đã lưu bưu cục thành công lên Cloud!");
       closeModal('modal-office');
-      renderMarkers();
-      renderStats();
-      renderDataTable();
       closeOfficeCard();
     }
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    function openAddMetricModal() {
-      const provName = selectedProvinceId 
-        ? (ALL_PROVINCES.find(p => p.id === selectedProvinceId)?.name || selectedProvinceId) 
-        : 'Toàn miền Bắc';
-      document.getElementById('metric-modal-province').value = provName;
-      document.getElementById('metric-modal-orders').value = '';
-      document.getElementById('metric-modal-trucks').value = '';
-      openModal('modal-metric');
-    }
-
-    function saveMetricModal() {
-      const carrier = document.getElementById('metric-modal-carrier').value;
-      const orders = parseFloat(document.getElementById('metric-modal-orders').value);
-      const trucks = parseInt(document.getElementById('metric-modal-trucks').value);
-
-      if (isNaN(orders) && isNaN(trucks)) {
-        alert("Vui lòng nhập sản lượng hoặc số xe!");
-        return;
-      }
-
-      const pId = selectedProvinceId || 'HYN';
-      if (!provinceSummaryMetrics[pId]) provinceSummaryMetrics[pId] = {};
-      
-      provinceSummaryMetrics[pId][carrier] = {
-        daily: !isNaN(orders) ? orders : null,
-        trucks: !isNaN(trucks) ? trucks : null,
-        offices: provinceSummaryMetrics[pId][carrier]?.offices || 1
-      };
-
-      persistData();
-      alert("Cập nhật số liệu thành công!");
-      closeModal('modal-metric');
-      renderStats();
-    }
 
     function setTab(tab) {
       if (tab === 'map') {
@@ -899,7 +834,6 @@
       }).join('');
     }
 
-    // --- XUẤT DỮ LIỆU SANG CSV ---
     function exportCurrentDataToCSV() {
       let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe\n";
       postOfficesData.forEach(po => {
@@ -915,12 +849,10 @@
       document.body.removeChild(a);
     }
 
-    // --- TẠO VÀ TẢI THẲNG FILE EXCEL XLSX MẪU ---
     function downloadTemplateExcel() {
       const sampleRows = [
         { "Mã bưu cục": "JT-HY01", "Tên bưu cục": "Bưu cục Mỹ Hào", "Hãng": "J&T", "Mã tỉnh": "HYN", "Vĩ độ": 20.685, "Kinh độ": 106.055, "Địa chỉ": "TX Mỹ Hào, Hưng Yên", "Đơn/ngày": 1200, "Số xe": 2 },
-        { "Mã bưu cục": "GHN-HN02", "Tên bưu cục": "Bưu cục Hoàn Kiếm", "Hãng": "GHN", "Mã tỉnh": "HNI", "Vĩ độ": 21.028, "Kinh độ": 105.854, "Địa chỉ": "Quận Hoàn Kiếm, Hà Nội", "Đơn/ngày": 3500, "Số xe": 4 },
-        { "Mã bưu cục": "VT-SLA01", "Tên bưu cục": "Bưu cục Mộc Châu", "Hãng": "Viettel Post", "Mã tỉnh": "SLA", "Vĩ độ": 20.845, "Kinh độ": 104.645, "Địa chỉ": "TT Mộc Châu, Sơn La", "Đơn/ngày": 800, "Số xe": 1 }
+        { "Mã bưu cục": "GHN-HN02", "Tên bưu cục": "Bưu cục Hoàn Kiếm", "Hãng": "GHN", "Mã tỉnh": "HNI", "Vĩ độ": 21.028, "Kinh độ": 105.854, "Địa chỉ": "Quận Hoàn Kiếm, Hà Nội", "Đơn/ngày": 3500, "Số xe": 4 }
       ];
       const ws = XLSX.utils.json_to_sheet(sampleRows);
       const wb = XLSX.utils.book_new();
@@ -928,7 +860,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- NHẬP FILE ĐA NĂNG (.XLSX, .CSV, .KML) ---
+    // --- 5. NHẬP FILE VÀ LƯU THẲNG LÊN SUPABASE CLOUD ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -943,25 +875,51 @@
         return;
       }
 
+      if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          Papa.parse(e.target.result, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+              if (results.data && results.data.length > 0) processImportedRows(results.data);
+              else alert("File không có dữ liệu!");
+            }
+          });
+        };
+        reader.readAsText(file, "UTF-8");
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rawRows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
-          processImportedRows(rawRows);
+          let foundRows = [];
+          for (let sheetName of workbook.SheetNames) {
+            const sheet = workbook.Sheets[sheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', blankrows: false });
+            if (rows && rows.length > 0) {
+              foundRows = rows;
+              break;
+            }
+          }
+          if (foundRows.length > 0) processImportedRows(foundRows);
+          else alert("File Excel không có dữ liệu!");
         } catch (err) {
-          alert("Lỗi đọc file Excel: " + err.message);
+          alert("Lỗi đọc file: " + err.message);
         }
         event.target.value = '';
       };
       reader.readAsArrayBuffer(file);
     }
 
-    function processImportedRows(rows) {
+    async function processImportedRows(rows) {
       let accepted = 0;
       let rejectedOutOfBounds = 0;
+      let uploadBatch = [];
 
       rows.forEach((row, idx) => {
         const getField = (candidates) => {
@@ -999,39 +957,43 @@
 
         const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
 
-        postOfficesData.push({
-          id: Date.now().toString() + Math.random().toString().slice(2, 6),
+        uploadBatch.push({
+          id: `BC-${Date.now()}-${idx}`,
           code: code,
           name: name,
           carrier: carrier,
-          provinceId: rawProv,
+          province_id: rawProv,
           lat: hasCoord ? latVal : null,
           lng: hasCoord ? lngVal : null,
           address: address,
-          dailyOrders: !isNaN(ordersVal) ? ordersVal : null,
+          daily_orders: !isNaN(ordersVal) ? ordersVal : null,
           trucks: !isNaN(trucksVal) ? trucksVal : null
         });
         accepted++;
       });
 
-      persistData();
-      alert(`KẾT QUẢ NHẬP FILE:\n- Hợp lệ đưa vào bản đồ: ${accepted} bưu cục\n- Bị loại (ngoài 25 tỉnh miền Bắc): ${rejectedOutOfBounds}`);
-      renderMarkers();
-      renderStats();
-      renderDataTable();
+      if (supabaseClient && uploadBatch.length > 0) {
+        for (let i = 0; i < uploadBatch.length; i += 500) {
+          const chunk = uploadBatch.slice(i, i + 500);
+          await supabaseClient.from('post_offices').upsert(chunk);
+        }
+      }
+
+      await loadDataFromCloud();
+      alert(`ĐỒNG BỘ CLOUD HOÀN TẤT!\n- Đã nạp thành công: ${accepted} bưu cục lên máy chủ Supabase.\n- Bị loại: ${rejectedOutOfBounds}`);
     }
 
-    function parseAndImportKML(kmlText) {
+    async function parseAndImportKML(kmlText) {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(kmlText, "text/xml");
       const placemarks = xmlDoc.getElementsByTagName("Placemark");
 
       if (placemarks.length === 0) {
-        alert("Lỗi: Không tìm thấy điểm bưu cục nào trong file KML!");
+        alert("Lỗi: Không tìm thấy điểm bưu cục nào trong KML!");
         return;
       }
 
-      let accepted = 0;
+      let uploadBatch = [];
       for (let i = 0; i < placemarks.length; i++) {
         const p = placemarks[i];
         const name = p.getElementsByTagName("name")[0]?.textContent.trim() || `BC-${i+1}`;
@@ -1065,27 +1027,30 @@
         const orders = parseFloat(desc.match(/TB đơn[^:]*:\s*([0-9,.]+)/i)?.[1]?.replace(/,/g, ''));
 
         if (VALID_PROVINCE_CODES.has(provId)) {
-          postOfficesData.push({
-            id: Date.now().toString() + Math.random().toString().slice(2, 6),
+          uploadBatch.push({
+            id: `KML-${Date.now()}-${i}`,
             code: code,
             name: name,
             carrier: 'J&T',
-            provinceId: provId,
+            province_id: provId,
             lat: lat,
             lng: lng,
             address: address,
-            dailyOrders: !isNaN(orders) ? orders : null,
+            daily_orders: !isNaN(orders) ? orders : null,
             trucks: null
           });
-          accepted++;
         }
       }
 
-      persistData();
-      alert(`ĐÃ XỬ LÝ XONG FILE KML GỐC!\n- Đã nạp thành công: ${accepted} bưu cục lên bản đồ.`);
-      renderMarkers();
-      renderStats();
-      renderDataTable();
+      if (supabaseClient && uploadBatch.length > 0) {
+        for (let i = 0; i < uploadBatch.length; i += 500) {
+          const chunk = uploadBatch.slice(i, i + 500);
+          await supabaseClient.from('post_offices').upsert(chunk);
+        }
+      }
+
+      await loadDataFromCloud();
+      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã nạp thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
     }
 
     window.onload = initMap;
