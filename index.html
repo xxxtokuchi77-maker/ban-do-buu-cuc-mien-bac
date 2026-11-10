@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc (Cloud Online)</title>
+  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc</title>
   
   <!-- CSS Frameworks -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -14,7 +14,7 @@
 
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    #map { height: calc(100vh - 64px); width: 100%; z-index: 10; }
+    #map { height: calc(100vh - 64px); width: 100%; z-index: 10; background-color: #f2efe9; }
     
     .custom-pin {
       display: flex; align-items: center; justify-content: center;
@@ -31,38 +31,38 @@
 <body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
 
   <!-- 1. THANH TRÊN (TOPBAR) -->
-  <header class="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between shrink-0 z-30 shadow-sm">
-    <div class="flex items-center space-x-6">
+  <header class="h-16 bg-white border-b border-gray-200 px-5 flex items-center justify-between shrink-0 z-30 shadow-sm">
+    <div class="flex items-center space-x-4">
       <div class="flex items-center space-x-2 text-red-600 font-bold text-xl tracking-tight">
         <i class="fa-solid fa-truck-fast"></i>
         <span>Logistics</span>
       </div>
       <div class="h-6 w-px bg-gray-300"></div>
-      <h1 class="font-extrabold text-gray-800 text-base md:text-lg uppercase tracking-wide">
+      <h1 class="font-extrabold text-gray-800 text-sm md:text-base uppercase tracking-wide">
         Bản đồ mạng lưới bưu cục miền Bắc
       </h1>
       <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center space-x-1">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span>Cloud Đồng bộ trực tuyến</span>
+        <span>Cloud Đồng bộ</span>
       </span>
     </div>
 
-    <div class="flex items-center space-x-2.5">
-      <button onclick="setTab('map')" id="btn-tab-map" class="bg-red-600 text-white px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm transition">
+    <div class="flex items-center space-x-2">
+      <button onclick="setTab('map')" id="btn-tab-map" class="bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm transition">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Bản đồ</span>
       </button>
-      <button onclick="setTab('data')" id="btn-tab-data" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
+      <button onclick="setTab('data')" id="btn-tab-data" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-solid fa-table-list"></i>
         <span>Cập nhật số liệu</span>
       </button>
-      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
+      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-solid fa-file-arrow-down text-blue-600"></i>
-        <span>File mẫu Excel</span>
+        <span>File mẫu</span>
       </button>
-      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
+      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
         <i class="fa-regular fa-file-excel"></i>
-        <span>Nhập Excel / KML</span>
+        <span>Nhập Excel/KML</span>
       </button>
       <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls, .csv, .kml" onchange="handleUniversalFileUpload(event)" />
     </div>
@@ -73,20 +73,62 @@
 
     <!-- VIEW 1: BẢN ĐỒ -->
     <div id="view-map" class="flex flex-1 w-full h-full relative">
-      <!-- CỘT BÊN TRÁI: CHỌN VÙNG VÀ NHIỀU TỈNH -->
-      <aside class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0">
-        <div class="p-3 border-b border-gray-200">
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
-            <input type="text" id="search-input" oninput="filterProvinces(this.value)" placeholder="Tìm tỉnh / bưu cục..." 
-                   class="w-full bg-gray-50 border border-gray-300 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
+      
+      <!-- CỘT BÊN TRÁI: CÓ NÚT THU GỌN / MỞ RỘNG (COLLAPSIBLE SIDEBAR) -->
+      <aside id="sidebar-container" class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0 transition-all duration-300 relative">
+        
+        <!-- NÚT ẨN / HIỆN SIDEBAR -->
+        <button onclick="toggleSidebar()" id="sidebar-toggle-btn" 
+                class="absolute -right-3.5 top-5 z-30 bg-white border border-gray-300 shadow-md w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 transition"
+                title="Ẩn / Hiện thanh khu vực">
+          <i id="sidebar-toggle-icon" class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+
+        <!-- NỘI DUNG TRONG SIDEBAR -->
+        <div id="sidebar-content" class="flex flex-col h-full overflow-hidden">
+          
+          <!-- TAB CHỌN: TỈNH / THÀNH HOẶC CỤM VÙNG NHỎ -->
+          <div class="flex border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-600">
+            <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white">
+              25 Tỉnh/Thành
+            </button>
+            <button onclick="setSidebarTab('subzones')" id="tab-btn-subzones" class="flex-1 py-2.5 text-center hover:text-red-600 transition flex items-center justify-center space-x-1">
+              <span>Vùng nhỏ (Cụm)</span>
+              <span id="subzones-count-badge" class="bg-red-100 text-red-600 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+            </button>
           </div>
-          <div class="flex items-center justify-between mt-2.5 px-1 text-[11px]">
-            <span class="text-gray-500">Tích chọn để xem nhiều tỉnh:</span>
-            <button onclick="clearProvinceSelection()" class="text-red-600 hover:underline font-semibold">Bỏ chọn hết</button>
+
+          <!-- PHẦN 1: TÌM KIẾM VÀ DANH SÁCH 25 TỈNH -->
+          <div id="sidebar-panel-provinces" class="flex flex-col flex-1 overflow-hidden">
+            <div class="p-3 border-b border-gray-200">
+              <div class="relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+                <input type="text" id="search-input" oninput="filterProvinces(this.value)" placeholder="Tìm tỉnh / bưu cục..." 
+                       class="w-full bg-gray-50 border border-gray-300 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
+              </div>
+              <div class="flex items-center justify-between mt-2.5 px-1 text-[11px]">
+                <span class="text-gray-500">Tích chọn để xem nhiều tỉnh:</span>
+                <button onclick="clearProvinceSelection()" class="text-red-600 hover:underline font-semibold">Bỏ chọn hết</button>
+              </div>
+            </div>
+            <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
           </div>
+
+          <!-- PHẦN 2: QUẢN LÝ VÀ CHỌN CÁC VÙNG NHỎ (CỤM BƯU CỤC) -->
+          <div id="sidebar-panel-subzones" class="hidden flex-col flex-1 overflow-hidden p-3">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+              <span class="text-xs text-gray-500 font-medium">Khoanh vùng cụm tự chọn:</span>
+              <button onclick="openCreateSubZoneModal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1 shadow-sm">
+                <i class="fa-solid fa-plus text-[10px]"></i>
+                <span>Tạo vùng nhỏ</span>
+              </button>
+            </div>
+            <div id="subzones-list" class="overflow-y-auto flex-1 mt-2 space-y-2">
+              <!-- Render danh sách các vùng nhỏ tự tạo -->
+            </div>
+          </div>
+
         </div>
-        <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
       </aside>
 
       <!-- KHU VỰC TRUNG TÂM: MAP -->
@@ -268,7 +310,46 @@
     </div>
   </div>
 
-  <!-- MODAL: THÊM / SỬA BƯU CỤC -->
+  <!-- MODAL 1: TẠO VÙNG NHỎ (CỤM BƯU CỤC TỰ CHỌN) -->
+  <div id="modal-subzone" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 flex flex-col max-h-[90vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+        <div>
+          <h3 class="font-bold text-gray-800 text-sm">Tạo Vùng Nhỏ / Cụm Bưu Cục</h3>
+          <p class="text-[11px] text-gray-500">Ví dụ: Cụm Gia Lâm (Hà Nội), Cụm KCN Quế Võ...</p>
+        </div>
+        <button onclick="closeModal('modal-subzone')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="mt-4 space-y-3 text-xs flex-1 overflow-y-auto pr-1">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Tên vùng nhỏ / Cụm (*):</label>
+          <input type="text" id="subzone-name" placeholder="Ví dụ: Cụm Gia Lâm" class="w-full border border-gray-300 rounded px-3 py-1.5 focus:ring-1 focus:ring-red-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Thuộc Tỉnh/Thành (*):</label>
+          <select id="subzone-province" onchange="renderOfficesForSubzoneSelect(this.value)" class="w-full border border-gray-300 rounded px-3 py-1.5"></select>
+        </div>
+        
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block font-semibold text-gray-700">Tùy ý chọn bưu cục thuộc cụm này (*):</label>
+            <span id="subzone-selected-count" class="text-[11px] text-red-600 font-bold">Đã chọn: 0</span>
+          </div>
+          <div id="subzone-office-picker" class="border border-gray-200 rounded-lg p-2 max-h-48 overflow-y-auto space-y-1.5 bg-gray-50">
+            <!-- Danh sách bưu cục để tích chọn -->
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-gray-200 flex justify-end space-x-2">
+        <button onclick="closeModal('modal-subzone')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
+        <button onclick="saveSubZone()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700">Lưu cụm này</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: THÊM / SỬA BƯU CỤC -->
   <div id="modal-office" class="hidden fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
       <div class="flex items-center justify-between pb-3 border-b border-gray-200">
@@ -332,7 +413,7 @@
     </div>
   </div>
 
-  <!-- Thư viện bản đồ, SheetJS & Supabase JS -->
+  <!-- Thư viện Leaflet, SheetJS & Supabase JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -348,7 +429,7 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // --- 1. THIẾT LẬP TỌA ĐỘ VÀ BÁN KÍNH HÌNH TRÒN CHO TỪNG TỈNH ---
+    // --- 1. ĐỊNH NGHĨA 3 VÙNG (25 TỈNH) ---
     const NORTH_REGIONS = {
       "Hà Nội": [
         { id: 'HNI', name: 'Hà Nội', center: [21.0285, 105.8542], radius: 32000 },
@@ -408,9 +489,12 @@
     };
 
     let postOfficesData = [];
-    let selectedProvinceIds = new Set(); // Hỗ trợ chọn nhiều tỉnh cùng lúc
+    let selectedProvinceIds = new Set();
+    let activeSubZone = null; // Cụm vùng nhỏ đang chọn
+    let customSubZones = JSON.parse(localStorage.getItem('saved_sub_zones')) || []; // Danh sách vùng nhỏ tự tạo
     let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
     let map, markerClusterGroup, highlightCirclesGroup;
+    let isSidebarCollapsed = false;
 
     // --- 2. TẢI TỪ SUPABASE CLOUD ---
     async function loadDataFromCloud() {
@@ -436,20 +520,27 @@
         renderMarkers();
         renderStats();
         renderDataTable();
+        renderSubZonesList();
       } catch (err) {
         console.error("Lỗi kết nối Cloud:", err.message);
       }
     }
 
-    // --- 3. KHỞI TẠO BẢN ĐỒ ---
+    // --- 3. KHỞI TẠO BẢN ĐỒ VỚI GOOGLE MAPS TỐC ĐỘ CAO (CHỐNG XÁM) ---
     function initMap() {
       map = L.map('map', { zoomControl: true }).setView([21.3, 105.5], 8);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors (25 Tỉnh Miền Bắc)',
-        maxZoom: 19,
-        minZoom: 6
+      // BẢN ĐỒ GOOGLE MAPS: Tải tức thì tại VN, không bao giờ xám
+      L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        attribution: '&copy; Google Maps',
+        maxZoom: 20,
+        minZoom: 6,
+        keepBuffer: 6
       }).addTo(map);
+
+      // Tự động tính lại kích thước chống xám
+      setTimeout(() => { map.invalidateSize(); }, 300);
+      window.addEventListener('resize', () => { map.invalidateSize(); });
 
       markerClusterGroup = L.markerClusterGroup({
         disableClusteringAtZoom: 14,
@@ -458,17 +549,215 @@
       });
       map.addLayer(markerClusterGroup);
 
-      // Nhóm chứa các vòng tròn khoanh vùng
       highlightCirclesGroup = L.featureGroup().addTo(map);
 
+      // Load tỉnh vào modal
       const provSelect = document.getElementById('office-modal-province');
-      provSelect.innerHTML = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
+      const szProvSelect = document.getElementById('subzone-province');
+      const provOptions = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
+      provSelect.innerHTML = provOptions;
+      szProvSelect.innerHTML = provOptions;
 
       renderAccordion();
+      renderSubZonesList();
       loadDataFromCloud();
     }
 
-    // --- 4. RENDER DANH SÁCH 3 VÙNG VÀ CHECKBOX CHỌN NHIỀU TỈNH ---
+    // --- 4. TÍNH NĂNG ẨN / HIỆN THANH KHU VỰC (TOGGLE SIDEBAR) ---
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar-container');
+      const icon = document.getElementById('sidebar-toggle-icon');
+      isSidebarCollapsed = !isSidebarCollapsed;
+
+      if (isSidebarCollapsed) {
+        sidebar.classList.add('-ml-80');
+        icon.className = 'fa-solid fa-chevron-right text-xs';
+      } else {
+        sidebar.classList.remove('-ml-80');
+        icon.className = 'fa-solid fa-chevron-left text-xs';
+      }
+
+      // Ép bản đồ tự tính lại chiều rộng ngay khi sidebar trượt
+      setTimeout(() => { map.invalidateSize(); }, 310);
+    }
+
+    function setSidebarTab(tab) {
+      if (tab === 'provinces') {
+        document.getElementById('sidebar-panel-provinces').classList.remove('hidden');
+        document.getElementById('sidebar-panel-subzones').classList.add('hidden');
+        document.getElementById('tab-btn-prov').className = 'flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white font-bold';
+        document.getElementById('tab-btn-subzones').className = 'flex-1 py-2.5 text-center text-gray-600 hover:text-red-600 transition flex items-center justify-center space-x-1 font-bold';
+      } else {
+        document.getElementById('sidebar-panel-provinces').classList.add('hidden');
+        document.getElementById('sidebar-panel-subzones').classList.remove('hidden');
+        document.getElementById('tab-btn-subzones').className = 'flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white font-bold flex items-center justify-center space-x-1';
+        document.getElementById('tab-btn-prov').className = 'flex-1 py-2.5 text-center text-gray-600 hover:text-red-600 transition font-bold';
+        renderSubZonesList();
+      }
+    }
+
+    // --- 5. TÍNH NĂNG TẠO VÀ QUẢN LÝ VÙNG NHỎ (SUB-ZONES) ---
+    function openCreateSubZoneModal() {
+      document.getElementById('subzone-name').value = '';
+      const currentProv = Array.from(selectedProvinceIds)[0] || 'HNI';
+      document.getElementById('subzone-province').value = currentProv;
+      renderOfficesForSubzoneSelect(currentProv);
+      openModal('modal-subzone');
+    }
+
+    function renderOfficesForSubzoneSelect(provinceId) {
+      const container = document.getElementById('subzone-office-picker');
+      const offices = postOfficesData.filter(po => po.provinceId === provinceId);
+      
+      if (offices.length === 0) {
+        container.innerHTML = '<div class="text-gray-400 text-center py-4">Tỉnh này chưa có bưu cục nào!</div>';
+        document.getElementById('subzone-selected-count').innerText = 'Đã chọn: 0';
+        return;
+      }
+
+      container.innerHTML = offices.map(po => `
+        <label class="flex items-center space-x-2 p-1.5 hover:bg-white rounded cursor-pointer border border-transparent hover:border-gray-200">
+          <input type="checkbox" value="${po.id}" class="subzone-office-cb rounded text-red-600 focus:ring-0" onchange="updateSubzoneSelectedCount()">
+          <span class="font-bold text-[11px] text-gray-800">[${po.carrier}] ${po.name}</span>
+          <span class="text-gray-400 text-[10px]">(${po.code})</span>
+        </label>
+      `).join('');
+      updateSubzoneSelectedCount();
+    }
+
+    function updateSubzoneSelectedCount() {
+      const checked = document.querySelectorAll('.subzone-office-cb:checked').length;
+      document.getElementById('subzone-selected-count').innerText = `Đã chọn: ${checked}`;
+    }
+
+    function saveSubZone() {
+      const name = document.getElementById('subzone-name').value.trim();
+      const provinceId = document.getElementById('subzone-province').value;
+      const checkedBoxes = document.querySelectorAll('.subzone-office-cb:checked');
+      const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+      if (!name) {
+        alert("Vui lòng nhập tên Vùng nhỏ / Cụm!");
+        return;
+      }
+      if (selectedIds.length === 0) {
+        alert("Vui lòng tích chọn ít nhất 1 bưu cục cho cụm này!");
+        return;
+      }
+
+      const newSubZone = {
+        id: `SZ-${Date.now()}`,
+        name: name,
+        provinceId: provinceId,
+        officeIds: selectedIds
+      };
+
+      customSubZones.push(newSubZone);
+      localStorage.setItem('saved_sub_zones', JSON.stringify(customSubZones));
+      closeModal('modal-subzone');
+      renderSubZonesList();
+      selectSubZone(newSubZone.id);
+      alert(`Đã tạo cụm [${name}] thành công!`);
+    }
+
+    function renderSubZonesList() {
+      const container = document.getElementById('subzones-list');
+      const badge = document.getElementById('subzones-count-badge');
+      badge.innerText = customSubZones.length;
+
+      if (customSubZones.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-gray-400 text-xs">
+            <i class="fa-solid fa-draw-polygon text-2xl text-gray-300 mb-2"></i>
+            <p>Chưa có vùng nhỏ nào.</p>
+            <p class="text-[11px] mt-1">Bấm nút "Tạo vùng nhỏ" ở trên để khoanh vùng cụm bưu cục tùy ý.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = customSubZones.map(sz => {
+        const isActive = activeSubZone && activeSubZone.id === sz.id;
+        const provName = ALL_PROVINCES.find(p => p.id === sz.provinceId)?.name || sz.provinceId;
+        return `
+          <div class="border rounded-lg p-2.5 transition ${isActive ? 'bg-red-50 border-red-500 shadow-sm' : 'bg-gray-50 border-gray-200 hover:bg-white'}">
+            <div class="flex items-start justify-between">
+              <div onclick="selectSubZone('${sz.id}')" class="cursor-pointer flex-1">
+                <div class="font-bold text-xs ${isActive ? 'text-red-600' : 'text-gray-800'} flex items-center space-x-1.5">
+                  <i class="fa-solid fa-circle-dot text-[10px]"></i>
+                  <span>${sz.name}</span>
+                </div>
+                <div class="text-[10px] text-gray-500 mt-1">
+                  Thuộc: <b>${provName}</b> • Số bưu cục: <b>${sz.officeIds.length}</b>
+                </div>
+              </div>
+              <button onclick="deleteSubZone('${sz.id}')" class="text-gray-400 hover:text-red-600 p-1" title="Xóa vùng nhỏ này">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectSubZone(subZoneId) {
+      activeSubZone = customSubZones.find(sz => sz.id === subZoneId);
+      if (!activeSubZone) return;
+
+      selectedProvinceIds.clear();
+      highlightCirclesGroup.clearLayers();
+
+      // Lấy danh sách bưu cục trong cụm
+      const subZoneOffices = postOfficesData.filter(po => activeSubZone.officeIds.includes(po.id) && po.lat && po.lng);
+
+      if (subZoneOffices.length > 0) {
+        // Tính tâm trung bình của các bưu cục trong cụm
+        const avgLat = subZoneOffices.reduce((s, o) => s + o.lat, 0) / subZoneOffices.length;
+        const avgLng = subZoneOffices.reduce((s, o) => s + o.lng, 0) / subZoneOffices.length;
+
+        // Tính bán kính bao phủ xa nhất của cụm
+        let maxDist = 5000;
+        subZoneOffices.forEach(o => {
+          const dist = map.distance([avgLat, avgLng], [o.lat, o.lng]);
+          if (dist > maxDist) maxDist = dist;
+        });
+
+        // Vẽ vòng tròn khoanh vùng cho riêng cụm này
+        const circle = L.circle([avgLat, avgLng], {
+          radius: maxDist + 1500,
+          color: '#E11B22',
+          weight: 3,
+          fillColor: '#FF4D4F',
+          fillOpacity: 0.18,
+          dashArray: '5, 5'
+        });
+        circle.bindTooltip(`<b>CỤM: ${activeSubZone.name.toUpperCase()}</b>`, { permanent: true, direction: 'top' });
+        highlightCirclesGroup.addLayer(circle);
+
+        map.fitBounds(circle.getBounds(), { padding: [35, 35], maxZoom: 14, duration: 0.8 });
+      }
+
+      document.getElementById('stats-target-title').innerText = `CỤM: ${activeSubZone.name.toUpperCase()}`;
+      document.getElementById('stats-target-title').title = activeSubZone.name;
+      renderSubZonesList();
+      renderMarkers();
+      renderStats();
+    }
+
+    function deleteSubZone(subZoneId) {
+      if (confirm("Bạn có chắc muốn xóa vùng nhỏ này không?")) {
+        customSubZones = customSubZones.filter(sz => sz.id !== subZoneId);
+        localStorage.setItem('saved_sub_zones', JSON.stringify(customSubZones));
+        if (activeSubZone && activeSubZone.id === subZoneId) {
+          activeSubZone = null;
+          selectEntireNorth();
+        } else {
+          renderSubZonesList();
+        }
+      }
+    }
+
+    // --- 6. RENDER DANH SÁCH 25 TỈNH ---
     function renderAccordion(searchTerm = '') {
       const container = document.getElementById('accordion-container');
       container.innerHTML = '';
@@ -491,7 +780,7 @@
               </span>
             </div>
             <div class="flex items-center space-x-2">
-              <button onclick="selectOnlyRegion('${regionName}')" class="text-[10px] bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded font-semibold transition" title="Xem tổng ${regionName}">
+              <button onclick="selectOnlyRegion('${regionName}')" class="text-[10px] bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded font-semibold transition">
                 Xem cả vùng
               </button>
               <i onclick="toggleAccordionGroup('${regionName}')" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transform transition-transform cursor-pointer" id="arrow-${regionName}"></i>
@@ -507,7 +796,7 @@
                            class="rounded text-red-600 focus:ring-0">
                     <span class="text-xs">${p.name}</span>
                   </label>
-                  <button onclick="selectOnlyProvince('${p.id}')" class="text-[10px] text-gray-400 hover:text-red-600 px-1.5 py-0.5" title="Chỉ xem tỉnh này">
+                  <button onclick="selectOnlyProvince('${p.id}')" class="text-[10px] text-gray-400 hover:text-red-600 px-1.5 py-0.5">
                     Chỉ xem
                   </button>
                 </div>
@@ -528,20 +817,22 @@
 
     function filterProvinces(term) { renderAccordion(term); }
 
-    // --- 5. LOGIC KHOANH VÙNG HÌNH TRÒN & CHỌN NHIỀU VÙNG ---
     function toggleSelectProvince(provId, isChecked) {
+      activeSubZone = null;
       if (isChecked) selectedProvinceIds.add(provId);
       else selectedProvinceIds.delete(provId);
       applyAreaSelection();
     }
 
     function selectOnlyProvince(provId) {
+      activeSubZone = null;
       selectedProvinceIds.clear();
       selectedProvinceIds.add(provId);
       applyAreaSelection();
     }
 
     function toggleSelectRegion(regionName, isChecked) {
+      activeSubZone = null;
       const list = NORTH_REGIONS[regionName] || [];
       list.forEach(p => {
         if (isChecked) selectedProvinceIds.add(p.id);
@@ -551,6 +842,7 @@
     }
 
     function selectOnlyRegion(regionName) {
+      activeSubZone = null;
       selectedProvinceIds.clear();
       const list = NORTH_REGIONS[regionName] || [];
       list.forEach(p => selectedProvinceIds.add(p.id));
@@ -558,21 +850,21 @@
     }
 
     function clearProvinceSelection() {
+      activeSubZone = null;
       selectedProvinceIds.clear();
       applyAreaSelection();
     }
 
     function selectEntireNorth() {
+      activeSubZone = null;
       selectedProvinceIds.clear();
       applyAreaSelection();
       map.flyTo([21.3, 105.5], 8, { duration: 0.8 });
     }
 
-    // Vẽ các vòng tròn khoanh vùng và phóng góc nhìn vừa vặn
     function applyAreaSelection() {
       highlightCirclesGroup.clearLayers();
 
-      // Cập nhật tiêu đề hiển thị
       const titleEl = document.getElementById('stats-target-title');
       if (selectedProvinceIds.size === 0) {
         titleEl.innerText = 'TOÀN MIỀN BẮC';
@@ -582,7 +874,6 @@
         titleEl.innerText = singleProv ? singleProv.name.toUpperCase() : 'TỈNH ĐÃ CHỌN';
         titleEl.title = titleEl.innerText;
       } else {
-        // Kiểm tra xem có trọn vẹn cả vùng lớn nào không
         let matchedRegion = null;
         for (let [rName, rList] of Object.entries(NORTH_REGIONS)) {
           if (rList.length === selectedProvinceIds.size && rList.every(p => selectedProvinceIds.has(p.id))) {
@@ -599,15 +890,15 @@
         titleEl.title = Array.from(selectedProvinceIds).map(id => ALL_PROVINCES.find(p => p.id === id)?.name).join(', ');
       }
 
-      // KHOANH VÙNG BẰNG HÌNH TRÒN CHO TỪNG TỈNH ĐƯỢC CHỌN
+      // KHOANH TRÒN CHO TỪNG TỈNH ĐƯỢC CHỌN
       selectedProvinceIds.forEach(id => {
         const prov = ALL_PROVINCES.find(p => p.id === id);
         if (prov && prov.center) {
           const circle = L.circle(prov.center, {
             radius: prov.radius || 25000,
-            color: '#E11B22',       // Viền đỏ nét đứt
+            color: '#E11B22',
             weight: 2.5,
-            fillColor: '#FF4D4F',   // Phủ màu hồng nhẹ
+            fillColor: '#FF4D4F',
             fillOpacity: 0.16,
             dashArray: '5, 5'
           });
@@ -616,7 +907,6 @@
         }
       });
 
-      // Tự động căn góc nhìn bao quát toàn bộ các vòng tròn được chọn
       if (highlightCirclesGroup.getLayers().length > 0) {
         map.fitBounds(highlightCirclesGroup.getBounds(), { padding: [30, 30], maxZoom: 13, duration: 0.8 });
       }
@@ -626,13 +916,15 @@
       renderStats();
     }
 
-    // --- 6. RENDER MARKERS & THỐNG KÊ CỘNG DỒN ---
+    // --- 7. RENDER MARKERS & THỐNG KÊ (CẢ TỈNH VÀ CỤM VÙNG NHỎ) ---
     function renderMarkers() {
       markerClusterGroup.clearLayers();
 
       const pointsToDisplay = postOfficesData.filter(po => {
         if (!visibleCarriers.has(po.carrier)) return false;
-        // Nếu có chọn tỉnh, chỉ hiện bưu cục thuộc các tỉnh đó
+        // Nếu đang xem 1 cụm vùng nhỏ
+        if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
+        // Nếu đang chọn các tỉnh
         if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
         return true;
       });
@@ -684,10 +976,12 @@
       tbody.innerHTML = carrierNames.map(cName => {
         const conf = CARRIERS[cName];
         
-        // Lọc bưu cục theo hãng và danh sách các tỉnh đang chọn
-        const filteredOffices = postOfficesData.filter(po => 
-          po.carrier === cName && (selectedProvinceIds.size > 0 ? selectedProvinceIds.has(po.provinceId) : true)
-        );
+        const filteredOffices = postOfficesData.filter(po => {
+          if (po.carrier !== cName) return false;
+          if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
+          if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
+          return true;
+        });
 
         const offices = filteredOffices.length;
         let sumOrders = 0;
@@ -756,7 +1050,7 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 7. CẬP NHẬT / SỬA / XÓA LÊN CLOUD ---
+    // --- 8. CẬP NHẬT / SỬA / XÓA LÊN CLOUD ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -877,14 +1171,14 @@
       if (tab === 'map') {
         document.getElementById('view-map').classList.remove('hidden');
         document.getElementById('view-data').classList.add('hidden');
-        document.getElementById('btn-tab-map').className = "bg-red-600 text-white px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
-        document.getElementById('btn-tab-data').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
-        map.invalidateSize();
+        document.getElementById('btn-tab-map').className = "bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
+        document.getElementById('btn-tab-data').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
+        setTimeout(() => { map.invalidateSize(); }, 200);
       } else {
         document.getElementById('view-map').classList.add('hidden');
         document.getElementById('view-data').classList.remove('hidden');
-        document.getElementById('btn-tab-data').className = "bg-red-600 text-white px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
-        document.getElementById('btn-tab-map').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
+        document.getElementById('btn-tab-data').className = "bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
+        document.getElementById('btn-tab-map').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
         renderDataTable();
       }
     }
@@ -945,7 +1239,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 8. NHẬP FILE VÀ LƯU LÊN SUPABASE CLOUD ---
+    // --- 9. BỘ ĐỌC FILE TỔNG HỢP ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
