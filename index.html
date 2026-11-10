@@ -3,46 +3,84 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc (Cloud Online)</title>
+  <title>Bản đồ Mạng lưới Bưu cục Miền Bắc</title>
   
-  <!-- CSS Frameworks -->
+  <!-- CSS Frameworks & Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     #map { height: calc(100vh - 64px); width: 100%; z-index: 10; background-color: #f2efe9; }
     
-    /* Chấm định vị chuẩn màu theo từng hãng */
+    /* Chấm định vị tròn màu theo từng hãng */
     .custom-pin {
       display: flex; align-items: center; justify-content: center;
-      width: 30px; height: 30px; border-radius: 50%;
+      width: 28px; height: 28px; border-radius: 50%;
       border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-      font-size: 9px; font-weight: 800; color: #fff;
-      flex-shrink: 0;
+      font-size: 9px; font-weight: 800; flex-shrink: 0;
+      transition: transform 0.15s ease;
     }
+    .custom-pin:hover { transform: scale(1.15); }
     .pin-jt { background-color: #E11B22; color: #fff; }       /* J&T: Đỏ */
     .pin-ghn { background-color: #0052CC; color: #fff; }      /* GHN: Xanh dương */
     .pin-viettel { background-color: #F8B105; color: #111; }  /* Viettel Post: Vàng */
     .pin-spx { background-color: #F05326; color: #fff; }      /* SPX Express: Cam */
 
-    /* Chữ nổi dưới chấm định vị: mặc định ẩn khi thu nhỏ, chỉ hiện khi zoom lớn */
-    .office-sublabel {
+    /* Nhãn nhỏ 1 dòng cạnh từng điểm */
+    .custom-office-marker { overflow: visible !important; }
+    .office-sublabel-tag {
+      position: absolute;
+      left: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(4px);
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
+      border-radius: 4px;
+      padding: 2px 7px;
+      color: #1e293b;
+      font-weight: 600;
+      white-space: nowrap;
+      pointer-events: auto;
+      line-height: 1.25;
+      z-index: 1000;
       display: none;
     }
-    .zoom-detail .office-sublabel {
-      display: flex !important;
+    .zoom-detail .office-sublabel-tag { display: flex !important; }
+    .label-mode-always .office-sublabel-tag { display: flex !important; }
+    .label-mode-none .office-sublabel-tag { display: none !important; }
+
+    /* Cụm riêng từng hãng - Badge chuẩn màu */
+    .carrier-cluster-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 9px;
+      border-radius: 9999px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: transform 0.15s ease;
     }
+    .carrier-cluster-badge:hover { transform: scale(1.1); }
+    .cluster-jt { background-color: #E11B22; color: #ffffff; }
+    .cluster-ghn { background-color: #0052CC; color: #ffffff; }
+    .cluster-viettel { background-color: #F8B105; color: #111827; }
+    .cluster-spx { background-color: #F05326; color: #ffffff; }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
 
-  <!-- 1. THANH TRÊN (TOPBAR) -->
-  <header class="h-16 bg-white border-b border-gray-200 px-5 flex items-center justify-between shrink-0 z-30 shadow-sm">
-    <div class="flex items-center space-x-4">
+  <!-- 1. THANH CÔNG CỤ TRÊN CÙNG (TOPBAR) -->
+  <header class="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between shrink-0 z-30 shadow-sm">
+    <div class="flex items-center space-x-3">
       <div class="flex items-center space-x-2 text-red-600 font-bold text-xl tracking-tight">
         <i class="fa-solid fa-truck-fast"></i>
         <span>Logistics</span>
@@ -51,13 +89,14 @@
       <h1 class="font-extrabold text-gray-800 text-sm md:text-base uppercase tracking-wide">
         Bản đồ mạng lưới bưu cục miền Bắc
       </h1>
-      <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2.5 py-0.5 rounded-full hidden sm:inline-flex items-center space-x-1">
+      <span id="cloud-status-badge" class="text-xs text-green-700 bg-green-50 border border-green-200 font-medium px-2 py-0.5 rounded-full hidden lg:inline-flex items-center space-x-1">
         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        <span>Cloud Đồng bộ</span>
+        <span>Cloud Trực tuyến</span>
       </span>
     </div>
 
     <div class="flex items-center space-x-2">
+      <!-- Tabs Bản đồ / Cập nhật số liệu -->
       <button onclick="setTab('map')" id="btn-tab-map" class="bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm transition">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Bản đồ</span>
@@ -66,11 +105,106 @@
         <i class="fa-solid fa-table-list"></i>
         <span>Cập nhật số liệu</span>
       </button>
-      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
-        <i class="fa-solid fa-file-arrow-down text-blue-600"></i>
-        <span>File mẫu</span>
+
+      <div class="h-5 w-px bg-gray-200 mx-1"></div>
+
+      <!-- Nút Ẩn/Hiện Ô Thông tin khu vực -->
+      <button onclick="toggleAreaStatsWidget()" id="btn-toggle-stats" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Bật/Tắt bảng thống kê góc phải">
+        <i class="fa-solid fa-chart-pie text-blue-600"></i>
+        <span class="hidden md:inline">Thông tin khu vực</span>
       </button>
-      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 transition">
+
+      <!-- Nút Ẩn/Hiện Chú giải bưu cục -->
+      <button onclick="toggleLegendWidget()" id="btn-toggle-legend" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Bật/Tắt chú giải góc trái">
+        <i class="fa-solid fa-list-check text-green-600"></i>
+        <span class="hidden md:inline">Chú giải bưu cục</span>
+      </button>
+
+      <!-- Nút Bật Bảng Tùy chọn Nhãn Bưu cục -->
+      <div class="relative">
+        <button onclick="toggleLabelSettingsPanel()" id="btn-label-settings" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Tùy chỉnh nhãn chữ hiển thị cạnh bưu cục">
+          <i class="fa-solid fa-tags text-amber-600"></i>
+          <span>Nhãn bưu cục</span>
+        </button>
+
+        <!-- BẢNG TÙY CHỌN NHÃN BƯU CỤC (DROPDOWN POPUP) -->
+        <div id="label-settings-panel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-[1000] text-xs space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+            <span class="font-bold text-gray-800 text-sm flex items-center space-x-1.5">
+              <i class="fa-solid fa-sliders text-red-600"></i>
+              <span>Cài đặt nhãn bưu cục</span>
+            </span>
+            <button onclick="toggleLabelSettingsPanel()" class="text-gray-400 hover:text-gray-600">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Chế độ hiển thị -->
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Chế độ hiển thị:</label>
+            <select id="cfg-label-mode" onchange="updateLabelConfig()" class="w-full bg-gray-50 border border-gray-300 rounded px-2.5 py-1.5">
+              <option value="auto">Tự động (Hiện khi zoom vào vùng)</option>
+              <option value="always">Luôn luôn hiển thị</option>
+              <option value="none">Ẩn tất cả nhãn</option>
+            </select>
+          </div>
+
+          <!-- 3 Ô chọn trường độc lập -->
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Các thông tin hiển thị trên nhãn:</label>
+            <div class="space-y-1.5 bg-gray-50 p-2.5 rounded border border-gray-200">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="cfg-lbl-name" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <span class="font-medium text-gray-800">Tên bưu cục</span>
+              </label>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="cfg-lbl-code" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <span class="font-medium text-gray-800">Mã bưu cục</span>
+              </label>
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" id="cfg-lbl-orders" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <span class="font-medium text-gray-800">Lượng đơn</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cách tính lượng đơn -->
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">Định dạng lượng đơn:</label>
+            <div class="flex items-center space-x-4 bg-gray-50 p-2 rounded border border-gray-200">
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="cfg-order-type" value="daily" checked onchange="updateLabelConfig()" class="text-red-600 focus:ring-0">
+                <span>Bình quân ngày</span>
+              </label>
+              <label class="flex items-center space-x-1.5 cursor-pointer">
+                <input type="radio" name="cfg-order-type" value="monthly" onchange="updateLabelConfig()" class="text-red-600 focus:ring-0">
+                <span>Tổng đơn kỳ</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cỡ chữ -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="font-semibold text-gray-700">Cỡ chữ nhãn:</label>
+              <span id="cfg-font-size-text" class="font-bold text-red-600">11px</span>
+            </div>
+            <input type="range" id="cfg-font-size" min="10" max="14" step="1" value="11" oninput="updateLabelFontSize(this.value)" class="w-full accent-red-600">
+            <div class="flex justify-between text-[10px] text-gray-400 mt-0.5">
+              <span>10px</span><span>11px</span><span>12px</span><span>13px</span><span>14px</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-5 w-px bg-gray-200 mx-1"></div>
+
+      <!-- File mẫu & Nhập Excel -->
+      <button onclick="downloadTemplateExcel()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition">
+        <i class="fa-solid fa-file-arrow-down text-blue-600"></i>
+        <span class="hidden md:inline">File mẫu</span>
+      </button>
+      <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1.5 transition">
         <i class="fa-regular fa-file-excel"></i>
         <span>Nhập Excel/KML</span>
       </button>
@@ -78,15 +212,14 @@
     </div>
   </header>
 
-  <!-- 2. NỘI DUNG CHÍNH -->
+  <!-- 2. NỘI DUNG CHÍNH (MAP HOẶC DATA VIEW) -->
   <div class="flex flex-1 relative overflow-hidden">
 
     <!-- VIEW 1: BẢN ĐỒ -->
     <div id="view-map" class="flex flex-1 w-full h-full relative">
       
-      <!-- CỘT BÊN TRÁI: CÓ THỂ THU GỌN / MỞ RỘNG -->
+      <!-- CỘT BÊN TRÁI: DANH SÁCH TỈNH & CỤM (COLLAPSIBLE SIDEBAR) -->
       <aside id="sidebar-container" class="w-80 bg-white border-r border-gray-200 flex flex-col z-20 shrink-0 transition-all duration-300 relative">
-        
         <button onclick="toggleSidebar()" id="sidebar-toggle-btn" 
                 class="absolute -right-3.5 top-5 z-30 bg-white border border-gray-300 shadow-md w-7 h-7 rounded-full flex items-center justify-center text-gray-600 hover:text-red-600 transition"
                 title="Ẩn / Hiện thanh khu vực">
@@ -94,7 +227,6 @@
         </button>
 
         <div id="sidebar-content" class="flex flex-col h-full overflow-hidden">
-          
           <div class="flex border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-600">
             <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white">
               25 Tỉnh/Thành
@@ -105,7 +237,7 @@
             </button>
           </div>
 
-          <!-- PHẦN 1: DANH SÁCH 25 TỈNH -->
+          <!-- PHẦN 1: TÌM KIẾM VÀ DANH SÁCH 25 TỈNH -->
           <div id="sidebar-panel-provinces" class="flex flex-col flex-1 overflow-hidden">
             <div class="p-3 border-b border-gray-200">
               <div class="relative">
@@ -114,14 +246,14 @@
                        class="w-full bg-gray-50 border border-gray-300 rounded-lg pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-red-500">
               </div>
               <div class="flex items-center justify-between mt-2.5 px-1 text-[11px]">
-                <span class="text-gray-500">Tích chọn để xem nhiều tỉnh:</span>
+                <span class="text-gray-500">Tích chọn xem nhiều tỉnh:</span>
                 <button onclick="clearProvinceSelection()" class="text-red-600 hover:underline font-semibold">Bỏ chọn hết</button>
               </div>
             </div>
             <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
           </div>
 
-          <!-- PHẦN 2: VÙNG NHỎ TỰ TẠO (CỤM) -->
+          <!-- PHẦN 2: QUẢN LÝ VÀ CHỌN CỤM VÙNG NHỎ -->
           <div id="sidebar-panel-subzones" class="hidden flex-col flex-1 overflow-hidden p-3">
             <div class="flex items-center justify-between pb-3 border-b border-gray-200">
               <span class="text-xs text-gray-500 font-medium">Khoanh vùng cụm tự chọn:</span>
@@ -132,7 +264,6 @@
             </div>
             <div id="subzones-list" class="overflow-y-auto flex-1 mt-2 space-y-2"></div>
           </div>
-
         </div>
       </aside>
 
@@ -140,22 +271,21 @@
       <main class="flex-1 relative">
         <div id="map"></div>
 
-        <!-- CÔNG CỤ ĐIỀU KHIỂN TRÊN BẢN ĐỒ -->
+        <!-- CÔNG CỤ TRÊN BẢN ĐỒ -->
         <div class="absolute top-4 left-14 z-[400] flex items-center space-x-2">
           <button onclick="selectEntireNorth()" class="bg-white border border-gray-300 shadow-md px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 transition">
             <i class="fa-solid fa-expand text-red-600"></i>
             <span>Toàn miền Bắc</span>
           </button>
           
-          <!-- NÚT ẨN / HIỆN VÒNG KHOANH TRÒN -->
           <button onclick="toggleHighlightCircles()" id="btn-toggle-circle" class="bg-white border border-gray-300 shadow-md px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 transition">
             <i id="btn-circle-icon" class="fa-solid fa-eye-slash text-blue-600"></i>
             <span id="btn-circle-text">Ẩn vòng khoanh tròn</span>
           </button>
         </div>
 
-        <!-- BẢNG THỐNG KÊ GÓC TRÊN BÊN PHẢI -->
-        <div class="absolute top-4 right-4 z-[400] w-96 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 p-4">
+        <!-- Ô THÔNG TIN KHU VỰC (GÓC TRÊN BÊN PHẢI) -->
+        <div id="stats-panel" class="absolute top-4 right-4 z-[400] w-96 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 p-4 transition-all duration-200">
           <div class="flex items-center justify-between pb-3 border-b border-gray-100">
             <div class="max-w-[210px]">
               <h2 id="stats-target-title" class="text-sm font-extrabold text-red-600 uppercase tracking-wide truncate" title="TOÀN MIỀN BẮC">TOÀN MIỀN BẮC</h2>
@@ -165,15 +295,20 @@
               </div>
             </div>
             
-            <div class="flex flex-col items-end space-y-1">
-              <select id="period-select" onchange="updateView()" class="text-xs bg-gray-50 border border-gray-300 rounded px-2 py-1 font-medium text-gray-700">
-                <option value="2026-11">Tháng 11/2026</option>
-                <option value="2026-10">Tháng 10/2026</option>
-              </select>
-              <div class="flex items-center space-x-1 text-[11px] text-gray-600">
-                <input type="checkbox" id="check-daily" onchange="updateView()" class="rounded text-red-600">
-                <label for="check-daily">Bình quân ngày</label>
+            <div class="flex items-center space-x-2">
+              <div class="flex flex-col items-end space-y-1">
+                <select id="period-select" onchange="updateView()" class="text-xs bg-gray-50 border border-gray-300 rounded px-2 py-1 font-medium text-gray-700">
+                  <option value="2026-11">Tháng 11/2026</option>
+                  <option value="2026-10">Tháng 10/2026</option>
+                </select>
+                <div class="flex items-center space-x-1 text-[11px] text-gray-600">
+                  <input type="checkbox" id="check-daily" onchange="updateView()" class="rounded text-red-600">
+                  <label for="check-daily">Bình quân ngày</label>
+                </div>
               </div>
+              <button onclick="toggleAreaStatsWidget(false)" class="text-gray-400 hover:text-gray-600 ml-1 p-1" title="Ẩn ô thông tin này">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </button>
             </div>
           </div>
 
@@ -198,9 +333,14 @@
           </div>
         </div>
 
-        <!-- GÓC DƯỚI BÊN TRÁI: BỘ LỌC HÃNG -->
-        <div class="absolute bottom-6 left-6 z-[400] bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 p-3.5 w-64 text-xs">
-          <div class="font-bold text-gray-800 mb-2">Chú giải bưu cục</div>
+        <!-- Ô CHÚ GIẢI BƯU CỤC (GÓC DƯỚI BÊN TRÁI) -->
+        <div id="legend-panel" class="absolute bottom-6 left-6 z-[400] bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 p-3.5 w-64 text-xs transition-all duration-200">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-gray-800">Chú giải bưu cục</div>
+            <button onclick="toggleLegendWidget(false)" class="text-gray-400 hover:text-gray-600 p-0.5" title="Ẩn ô chú giải">
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          </div>
           <div class="space-y-2">
             <label class="flex items-center space-x-2 cursor-pointer select-none">
               <input type="checkbox" checked onchange="toggleCarrier('J&T', this.checked)" class="rounded text-red-600 focus:ring-0">
@@ -228,7 +368,7 @@
           </div>
         </div>
 
-        <!-- POPUP CHI TIẾT BƯU CỤC -->
+        <!-- THẺ CHI TIẾT BƯU CỤC (GÓC DƯỚI PHẢI) -->
         <div id="office-detail-card" class="hidden absolute bottom-6 right-6 z-[400] w-88 bg-white rounded-xl shadow-2xl border border-gray-200 p-4">
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-2.5">
@@ -275,14 +415,18 @@
       </main>
     </div>
 
-    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU -->
+    <!-- VIEW 2: TRANG CẬP NHẬT SỐ LIỆU (CÓ ĐỦ BỘ LỌC + THỜI ĐIỂM CẬP NHẬT) -->
     <div id="view-data" class="hidden flex-1 bg-white flex flex-col p-6 overflow-y-auto">
-      <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+      
+      <!-- TIÊU ĐỀ & NÚT TÁC VỤ -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-gray-200 gap-3">
         <div>
           <h2 class="text-lg font-bold text-gray-800">Quản lý bưu cục trực tuyến (25 Tỉnh Miền Bắc)</h2>
-          <p class="text-xs text-gray-500">Dữ liệu được lưu vĩnh viễn trên Supabase Cloud - Ai mở link cũng xem được</p>
+          <p class="text-xs text-gray-500 mt-0.5">
+            Lần cập nhật dữ liệu gần nhất: <b id="last-update-banner" class="text-red-600">Chưa ghi nhận</b>
+          </p>
         </div>
-        <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-2">
           <button onclick="downloadTemplateExcel()" class="px-3 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded text-xs font-semibold flex items-center space-x-1">
             <i class="fa-solid fa-download"></i>
             <span>Tải file mẫu Excel</span>
@@ -302,6 +446,45 @@
         </div>
       </div>
 
+      <!-- BỘ LỌC ĐA ĐIỀU KIỆN (KHÔI PHỤC TOÀN DIỆN) -->
+      <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-xl grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Tìm kiếm từ khóa:</label>
+          <input type="text" id="dt-filter-search" oninput="applyDataTableFilters()" placeholder="Mã BC, Tên, Địa chỉ..." 
+                 class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:ring-1 focus:ring-red-500">
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Lọc theo Tỉnh/Thành:</label>
+          <select id="dt-filter-province" onchange="applyDataTableFilters()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
+            <option value="">-- Tất cả 25 tỉnh --</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Lọc theo Hãng:</label>
+          <select id="dt-filter-carrier" onchange="applyDataTableFilters()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
+            <option value="">-- Tất cả các hãng --</option>
+            <option value="J&T">J&T Express</option>
+            <option value="GHN">Giao Hàng Nhanh</option>
+            <option value="Viettel Post">Viettel Post</option>
+            <option value="SPX">SPX Express</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-gray-700 mb-1">Ngày cập nhật (Từ - Đến):</label>
+          <div class="flex items-center space-x-1">
+            <input type="date" id="dt-filter-date-from" onchange="applyDataTableFilters()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
+            <input type="date" id="dt-filter-date-to" onchange="applyDataTableFilters()" class="w-1/2 bg-white border border-gray-300 rounded px-1.5 py-1">
+          </div>
+        </div>
+        <div class="flex items-end">
+          <button onclick="resetDataTableFilters()" class="w-full bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 rounded py-1.5 font-semibold flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-arrow-rotate-left"></i>
+            <span>Xóa bộ lọc</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BẢNG DỮ LIỆU CÓ CỘT THỜI ĐIỂM CẬP NHẬT -->
       <div class="mt-4 overflow-x-auto flex-1">
         <table class="w-full text-left text-xs border border-gray-200">
           <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
@@ -313,6 +496,7 @@
               <th class="p-2.5 border-r">Tọa độ</th>
               <th class="p-2.5 border-r text-right">Đơn/ngày</th>
               <th class="p-2.5 border-r text-right">Số xe</th>
+              <th class="p-2.5 border-r">Thời điểm cập nhật</th>
               <th class="p-2.5 border-r text-center">Google Maps</th>
               <th class="p-2.5 border-r text-center">Trạng thái</th>
               <th class="p-2.5 text-center w-28">Thao tác</th>
@@ -424,7 +608,7 @@
     </div>
   </div>
 
-  <!-- Thư viện bản đồ, SheetJS & Supabase JS -->
+  <!-- Thư viện bản đồ, MarkerCluster, PapaParse, SheetJS & Supabase JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -432,6 +616,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
+    // CẤU HÌNH SUPABASE CỦA BẠN
     const SUPABASE_URL = "https://zokrcnwmmlrfgtycydpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_OY6DzKcMi0RABPhB6C7R3A_eawc_KHx";
 
@@ -440,7 +625,7 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // --- 1. DANH SÁCH 25 TỈNH MIỀN BẮC & BÁN KÍNH HÌNH TRÒN ---
+    // --- 1. DANH SÁCH 25 TỈNH MIỀN BẮC & TỌA ĐỘ VÒNG KHOANH ---
     const NORTH_REGIONS = {
       "Hà Nội": [
         { id: 'HNI', name: 'Hà Nội', center: [21.0285, 105.8542], radius: 32000 },
@@ -492,15 +677,15 @@
       VALID_PROVINCE_CODES.add(p.id);
     }));
 
-    // Cấu hình chuẩn mã màu của từng hãng
+    // Cấu hình chuẩn màu sắc và mã CSS của từng hãng
     const CARRIERS = {
-      'J&T': { color: '#E11B22', class: 'pin-jt', label: 'J&T' },
-      'GHN': { color: '#0052CC', class: 'pin-ghn', label: 'GHN' },
-      'Viettel Post': { color: '#F8B105', class: 'pin-viettel', label: 'VTP' },
-      'SPX': { color: '#F05326', class: 'pin-spx', label: 'SPX' }
+      'J&T': { color: '#E11B22', class: 'pin-jt', cssKey: 'jt', label: 'J&T' },
+      'GHN': { color: '#0052CC', class: 'pin-ghn', cssKey: 'ghn', label: 'GHN' },
+      'Viettel Post': { color: '#F8B105', class: 'pin-viettel', cssKey: 'viettel', label: 'VTP' },
+      'SPX': { color: '#F05326', class: 'pin-spx', cssKey: 'spx', label: 'SPX' }
     };
 
-    // Hàm tự động chuẩn hóa hãng từ tên hoặc chuỗi đầu vào
+    // Tự động nhận diện hãng chuẩn xác
     function detectCarrier(name, desc, rawCarrier) {
       const full = (String(rawCarrier) + ' ' + String(name) + ' ' + String(desc)).toLowerCase();
       if (full.includes('ghn') || full.includes('giao hàng nhanh') || full.includes('giaohangnhanh')) return 'GHN';
@@ -510,14 +695,46 @@
       return rawCarrier || 'J&T';
     }
 
+    // Hàm định dạng ngày giờ chuẩn Việt Nam dd/MM/yyyy HH:mm:ss
+    function formatDateTimeVN(isoString) {
+      if (!isoString) return 'Chưa ghi nhận';
+      try {
+        const d = new Date(isoString);
+        if (isNaN(d.getTime())) return 'Chưa ghi nhận';
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+      } catch {
+        return 'Chưa ghi nhận';
+      }
+    }
+
     let postOfficesData = [];
     let selectedProvinceIds = new Set();
     let activeSubZone = null;
     let customSubZones = JSON.parse(localStorage.getItem('saved_sub_zones')) || [];
     let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
-    let map, markerClusterGroup, highlightCirclesGroup;
+    let map, highlightCirclesGroup;
     let isSidebarCollapsed = false;
-    let showHighlightCircles = true; // Cờ bật/tắt vòng khoanh tròn
+    let showHighlightCircles = true;
+
+    // QUẢN LÝ GOM CỤM RIÊNG TỪNG HÃNG
+    let carrierClusterGroups = {};
+
+    // CẤU HÌNH NHÃN BƯU CỤC (LƯU TRÊN LOCALSTORAGE)
+    let labelConfig = JSON.parse(localStorage.getItem('saved_label_config')) || {
+      mode: 'auto',          // 'auto', 'always', 'none'
+      showName: true,
+      showCode: true,
+      showOrders: true,
+      orderType: 'daily',    // 'daily', 'monthly'
+      fontSize: 11           // 10 to 14
+    };
+
+    // TRẠNG THÁI ẨN / HIỆN 2 Ô THÔNG TIN
+    let widgetState = JSON.parse(localStorage.getItem('saved_widget_state')) || {
+      showAreaStats: true,
+      showLegend: true
+    };
 
     // --- 2. TẢI TỪ SUPABASE CLOUD ---
     async function loadDataFromCloud() {
@@ -539,10 +756,12 @@
             lng: row.lng,
             address: row.address,
             dailyOrders: row.daily_orders,
-            trucks: row.trucks
+            trucks: row.trucks,
+            updatedAt: row.updated_at || row.updatedAt || null
           };
         });
 
+        updateLastUpdateBanner();
         renderMarkers();
         renderStats();
         renderDataTable();
@@ -552,7 +771,20 @@
       }
     }
 
-    // --- 3. KHỞI TẠO BẢN ĐỒ VỚI GOOGLE MAPS ---
+    function updateLastUpdateBanner() {
+      let latestTime = null;
+      postOfficesData.forEach(po => {
+        if (po.updatedAt) {
+          const t = new Date(po.updatedAt).getTime();
+          if (!isNaN(t) && (!latestTime || t > latestTime)) latestTime = t;
+        }
+      });
+      const el = document.getElementById('last-update-banner');
+      if (latestTime) el.innerText = formatDateTimeVN(new Date(latestTime).toISOString());
+      else el.innerText = 'Chưa ghi nhận';
+    }
+
+    // --- 3. KHỞI TẠO BẢN ĐỒ VÀ GOM CỤM ĐỘC LẬP TỪNG HÃNG ---
     function initMap() {
       map = L.map('map', { zoomControl: true }).setView([21.3, 105.5], 8);
 
@@ -563,42 +795,149 @@
         keepBuffer: 8
       }).addTo(map);
 
-      // Khi zoom sâu (>= 13), thêm class 'zoom-detail' để hiện chữ nổi dưới bưu cục
-      function checkZoomLevel() {
+      // CẬP NHẬT TRẠNG THÁI ZOOM ĐỂ HIỆN NHÃN TỰ ĐỘNG
+      function updateMapZoomClass() {
         const container = map.getContainer();
-        if (map.getZoom() >= 13) {
-          container.classList.add('zoom-detail');
+        if (labelConfig.mode === 'always') {
+          container.classList.add('label-mode-always');
+          container.classList.remove('label-mode-none');
+        } else if (labelConfig.mode === 'none') {
+          container.classList.add('label-mode-none');
+          container.classList.remove('label-mode-always');
         } else {
-          container.classList.remove('zoom-detail');
+          container.classList.remove('label-mode-always', 'label-mode-none');
+          if (map.getZoom() >= 13) container.classList.add('zoom-detail');
+          else container.classList.remove('zoom-detail');
         }
       }
-      map.on('zoomend', checkZoomLevel);
-      checkZoomLevel();
+      map.on('zoomend', updateMapZoomClass);
 
-      setTimeout(() => { map.invalidateSize(); }, 300);
+      setTimeout(() => { map.invalidateSize(); updateMapZoomClass(); }, 300);
       window.addEventListener('resize', () => { map.invalidateSize(); });
 
-      markerClusterGroup = L.markerClusterGroup({
-        disableClusteringAtZoom: 13,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false
+      // KHỞI TẠO 4 NHÓM GOM CỤM ĐỘC LẬP THEO TỪNG HÃNG (OFFSET TRÁNH ĐÈ NHAU)
+      const carrierOffsets = {
+        'J&T': [0, 0],
+        'GHN': [14, -10],
+        'Viettel Post': [-14, 10],
+        'SPX': [14, 10]
+      };
+
+      Object.keys(CARRIERS).forEach(cKey => {
+        const conf = CARRIERS[cKey];
+        const offset = carrierOffsets[cKey];
+        carrierClusterGroups[cKey] = L.markerClusterGroup({
+          disableClusteringAtZoom: 13,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          maxClusterRadius: 40,
+          iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: `<div class="carrier-cluster-badge cluster-${conf.cssKey}">
+                       <span>${conf.label} · ${count}</span>
+                     </div>`,
+              className: 'custom-carrier-cluster-icon',
+              iconSize: [66, 26],
+              iconAnchor: [33 - offset[0], 13 - offset[1]]
+            });
+          }
+        });
+        map.addLayer(carrierClusterGroups[cKey]);
       });
-      map.addLayer(markerClusterGroup);
 
       highlightCirclesGroup = L.featureGroup().addTo(map);
 
-      const provSelect = document.getElementById('office-modal-province');
-      const szProvSelect = document.getElementById('subzone-province');
+      // Điền danh sách tỉnh vào các dropdown
       const provOptions = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
-      provSelect.innerHTML = provOptions;
-      szProvSelect.innerHTML = provOptions;
+      document.getElementById('office-modal-province').innerHTML = provOptions;
+      document.getElementById('subzone-province').innerHTML = provOptions;
+      document.getElementById('dt-filter-province').innerHTML = '<option value="">-- Tất cả 25 tỉnh --</option>' + provOptions;
 
+      // Áp dụng cấu hình ban đầu
+      applyWidgetState();
+      syncLabelSettingsToUI();
       renderAccordion();
       renderSubZonesList();
       loadDataFromCloud();
     }
 
-    // --- 4. ẨN / HIỆN VÒNG KHOANH TRÒN ---
+    // --- 4. TÙY BIẾN NHÃN BƯU CỤC (REQ 1 & 2) ---
+    function toggleLabelSettingsPanel() {
+      const panel = document.getElementById('label-settings-panel');
+      panel.classList.toggle('hidden');
+    }
+
+    function syncLabelSettingsToUI() {
+      document.getElementById('cfg-label-mode').value = labelConfig.mode;
+      document.getElementById('cfg-lbl-name').checked = labelConfig.showName;
+      document.getElementById('cfg-lbl-code').checked = labelConfig.showCode;
+      document.getElementById('cfg-lbl-orders').checked = labelConfig.showOrders;
+      document.querySelector(`input[name="cfg-order-type"][value="${labelConfig.orderType}"]`).checked = true;
+      document.getElementById('cfg-font-size').value = labelConfig.fontSize;
+      document.getElementById('cfg-font-size-text').innerText = `${labelConfig.fontSize}px`;
+    }
+
+    function updateLabelConfig() {
+      labelConfig.mode = document.getElementById('cfg-label-mode').value;
+      labelConfig.showName = document.getElementById('cfg-lbl-name').checked;
+      labelConfig.showCode = document.getElementById('cfg-lbl-code').checked;
+      labelConfig.showOrders = document.getElementById('cfg-lbl-orders').checked;
+      labelConfig.orderType = document.querySelector('input[name="cfg-order-type"]:checked').value;
+      localStorage.setItem('saved_label_config', JSON.stringify(labelConfig));
+      
+      const container = map.getContainer();
+      container.classList.remove('label-mode-always', 'label-mode-none', 'zoom-detail');
+      if (labelConfig.mode === 'always') container.classList.add('label-mode-always');
+      else if (labelConfig.mode === 'none') container.classList.add('label-mode-none');
+      else if (map.getZoom() >= 13) container.classList.add('zoom-detail');
+
+      renderMarkers();
+    }
+
+    function updateLabelFontSize(size) {
+      labelConfig.fontSize = parseInt(size);
+      document.getElementById('cfg-font-size-text').innerText = `${size}px`;
+      localStorage.setItem('saved_label_config', JSON.stringify(labelConfig));
+      renderMarkers();
+    }
+
+    // --- 5. ẨN / HIỆN 2 Ô THÔNG TIN (REQ 3) ---
+    function applyWidgetState() {
+      const statsPanel = document.getElementById('stats-panel');
+      const legendPanel = document.getElementById('legend-panel');
+      const btnStats = document.getElementById('btn-toggle-stats');
+      const btnLegend = document.getElementById('btn-toggle-legend');
+
+      if (widgetState.showAreaStats) {
+        statsPanel.classList.remove('hidden');
+        btnStats.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+      } else {
+        statsPanel.classList.add('hidden');
+        btnStats.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
+      }
+
+      if (widgetState.showLegend) {
+        legendPanel.classList.remove('hidden');
+        btnLegend.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
+      } else {
+        legendPanel.classList.add('hidden');
+        btnLegend.classList.remove('bg-green-50', 'text-green-700', 'border-green-300');
+      }
+    }
+
+    function toggleAreaStatsWidget(forceState) {
+      widgetState.showAreaStats = forceState !== undefined ? forceState : !widgetState.showAreaStats;
+      localStorage.setItem('saved_widget_state', JSON.stringify(widgetState));
+      applyWidgetState();
+    }
+
+    function toggleLegendWidget(forceState) {
+      widgetState.showLegend = forceState !== undefined ? forceState : !widgetState.showLegend;
+      localStorage.setItem('saved_widget_state', JSON.stringify(widgetState));
+      applyWidgetState();
+    }
+
     function toggleHighlightCircles() {
       showHighlightCircles = !showHighlightCircles;
       const btnText = document.getElementById('btn-circle-text');
@@ -615,7 +954,6 @@
       }
     }
 
-    // --- 5. ẨN / HIỆN SIDEBAR ---
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar-container');
       const icon = document.getElementById('sidebar-toggle-icon');
@@ -628,7 +966,6 @@
         sidebar.classList.remove('-ml-80');
         icon.className = 'fa-solid fa-chevron-left text-xs';
       }
-
       setTimeout(() => { map.invalidateSize(); }, 310);
     }
 
@@ -647,7 +984,257 @@
       }
     }
 
-    // --- 6. QUẢN LÝ VÙNG NHỎ (CỤM) ---
+    // --- 6. RENDER MARKERS KÈM NHÃN 1 DÒNG VÀ GOM CỤM RIÊNG TỪNG HÃNG (REQ 1 & 7) ---
+    function renderMarkers() {
+      // Xóa điểm trên từng nhóm hãng
+      Object.keys(carrierClusterGroups).forEach(k => carrierClusterGroups[k].clearLayers());
+
+      const pointsToDisplay = postOfficesData.filter(po => {
+        if (!visibleCarriers.has(po.carrier)) return false;
+        if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
+        if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
+        return true;
+      });
+
+      pointsToDisplay.forEach(po => {
+        if (!po.lat || !po.lng) return;
+
+        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+
+        // TẠO NỘI DUNG NHÃN 1 DÒNG CHỈ GHÉP CÁC TRƯỜNG ĐƯỢC CHỌN VỚI ' | '
+        let labelParts = [];
+        if (labelConfig.showName) {
+          labelParts.push(po.name || 'Bưu cục');
+        }
+        if (labelConfig.showCode) {
+          labelParts.push(po.code || '');
+        }
+        if (labelConfig.showOrders) {
+          if (po.dailyOrders !== null && po.dailyOrders !== undefined) {
+            const count = labelConfig.orderType === 'monthly' ? Math.round(po.dailyOrders * 30) : Math.round(po.dailyOrders);
+            const unit = labelConfig.orderType === 'monthly' ? 'đơn/kỳ' : 'đơn/ngày';
+            labelParts.push(`${count.toLocaleString('vi-VN')} ${unit}`);
+          } else {
+            labelParts.push('—');
+          }
+        }
+
+        const singleLineText = labelParts.filter(Boolean).join(' | ');
+
+        const iconHtml = `
+          <div class="relative flex items-center">
+            <div class="custom-pin ${conf.class}">${conf.label}</div>
+            ${singleLineText ? `
+              <div class="office-sublabel-tag" style="font-size: ${labelConfig.fontSize}px;">
+                <span class="truncate max-w-[210px]" title="${po.name} | ${po.code} | ${po.dailyOrders ? po.dailyOrders.toLocaleString() : '—'} đơn">${singleLineText}</span>
+              </div>
+            ` : ''}
+          </div>
+        `;
+
+        const markerIcon = L.divIcon({
+          className: 'custom-office-marker',
+          html: iconHtml,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+
+        const marker = L.marker([po.lat, po.lng], { icon: markerIcon });
+        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}`;
+
+        marker.bindPopup(`
+          <div class="text-xs p-1">
+            <b class="text-sm font-bold" style="color:${conf.color}">[${po.carrier}] • ${po.name}</b><br/>
+            <span class="text-gray-500">${po.address || ''}</span><br/>
+            <div class="mt-2 flex items-center justify-between">
+              <a href="${googleMapsUrl}" target="_blank" class="text-blue-600 font-bold hover:underline">
+                📍 Mở Google Maps &rarr;
+              </a>
+            </div>
+          </div>
+        `);
+
+        marker.on('click', () => showOfficeDetail(po));
+
+        // NẠP ĐIỂM VÀO ĐÚNG CỤM CỦA HÃNG ĐÓ
+        if (carrierClusterGroups[po.carrier]) {
+          carrierClusterGroups[po.carrier].addLayer(marker);
+        }
+      });
+    }
+
+    function toggleCarrier(carrierName, isChecked) {
+      if (isChecked) {
+        visibleCarriers.add(carrierName);
+        if (carrierClusterGroups[carrierName]) map.addLayer(carrierClusterGroups[carrierName]);
+      } else {
+        visibleCarriers.delete(carrierName);
+        if (carrierClusterGroups[carrierName]) map.removeLayer(carrierClusterGroups[carrierName]);
+      }
+      renderMarkers();
+      renderStats();
+    }
+
+    function renderStats() {
+      const tbody = document.getElementById('metrics-tbody');
+      const isDaily = document.getElementById('check-daily').checked;
+      document.getElementById('th-orders').innerText = isDaily ? 'Đơn/ngày' : 'Tổng đơn kỳ';
+
+      const carrierNames = ['J&T', 'GHN', 'Viettel Post', 'SPX'];
+
+      tbody.innerHTML = carrierNames.map(cName => {
+        const conf = CARRIERS[cName];
+        const filteredOffices = postOfficesData.filter(po => {
+          if (po.carrier !== cName) return false;
+          if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
+          if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
+          return true;
+        });
+
+        const offices = filteredOffices.length;
+        let sumOrders = 0;
+        let hasOrderData = false;
+        let sumTrucks = 0;
+        let hasTruckData = false;
+
+        filteredOffices.forEach(po => {
+          if (po.dailyOrders !== null && po.dailyOrders !== undefined) {
+            sumOrders += isDaily ? po.dailyOrders : po.dailyOrders * 30;
+            hasOrderData = true;
+          }
+          if (po.trucks !== null && po.trucks !== undefined) {
+            sumTrucks += po.trucks;
+            hasTruckData = true;
+          }
+        });
+
+        const ordersDisplay = hasOrderData ? Math.round(sumOrders).toLocaleString('vi-VN') : '—';
+        const officeDisplay = offices > 0 ? offices : '—';
+        const truckDisplay = hasTruckData ? sumTrucks : '—';
+
+        return `
+          <tr class="hover:bg-gray-50/80">
+            <td class="py-2.5 flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${conf.color}"></span>
+              <span class="font-bold text-gray-800">${cName}</span>
+            </td>
+            <td class="py-2.5 text-right font-semibold text-gray-700">${ordersDisplay}</td>
+            <td class="py-2.5 text-right text-gray-700">${officeDisplay}</td>
+            <td class="py-2.5 text-right text-gray-700">${truckDisplay}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateView() { renderStats(); }
+
+    function showOfficeDetail(po) {
+      const card = document.getElementById('office-detail-card');
+      const badge = document.getElementById('card-badge');
+      const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+
+      badge.style.backgroundColor = conf.color;
+      badge.innerText = conf.label;
+
+      document.getElementById('card-name').innerText = `${po.carrier} • ${po.name}`;
+      document.getElementById('card-code').innerText = `Mã: ${po.code} (Tỉnh: ${po.provinceId})`;
+      document.getElementById('card-address').innerHTML = `<i class="fa-solid fa-location-dot mr-1 text-gray-400"></i> ${po.address || 'Chưa cập nhật địa chỉ'}`;
+      document.getElementById('card-orders').innerText = po.dailyOrders ? `${Math.round(po.dailyOrders).toLocaleString()} đơn/ngày` : '—';
+      document.getElementById('card-trucks').innerText = po.trucks ? `${po.trucks} xe` : '—';
+
+      const gmapsBtn = document.getElementById('card-google-maps-btn');
+      if (po.lat && po.lng) {
+        gmapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}`;
+        gmapsBtn.classList.remove('opacity-50', 'pointer-events-none');
+      } else {
+        gmapsBtn.classList.add('opacity-50', 'pointer-events-none');
+      }
+
+      document.getElementById('card-edit-btn').onclick = () => editOffice(po.id);
+      card.classList.remove('hidden');
+    }
+
+    function closeOfficeCard() {
+      document.getElementById('office-detail-card').classList.add('hidden');
+    }
+
+    // --- 7. BỘ LỌC ĐA ĐIỀU KIỆN TRONG TAB CẬP NHẬT SỐ LIỆU (REQ 5 & 6) ---
+    function applyDataTableFilters() {
+      const keyword = document.getElementById('dt-filter-search').value.trim().toLowerCase();
+      const prov = document.getElementById('dt-filter-province').value;
+      const carrier = document.getElementById('dt-filter-carrier').value;
+      const dateFrom = document.getElementById('dt-filter-date-from').value;
+      const dateTo = document.getElementById('dt-filter-date-to').value;
+
+      const filtered = postOfficesData.filter(po => {
+        if (keyword) {
+          const match = (po.code || '').toLowerCase().includes(keyword) ||
+                        (po.name || '').toLowerCase().includes(keyword) ||
+                        (po.address || '').toLowerCase().includes(keyword);
+          if (!match) return false;
+        }
+        if (prov && po.provinceId !== prov) return false;
+        if (carrier && po.carrier !== carrier) return false;
+
+        if (dateFrom || dateTo) {
+          if (!po.updatedAt) return false;
+          const upDate = new Date(po.updatedAt).toISOString().slice(0, 10);
+          if (dateFrom && upDate < dateFrom) return false;
+          if (dateTo && upDate > dateTo) return false;
+        }
+        return true;
+      });
+
+      renderDataTableRows(filtered);
+    }
+
+    function resetDataTableFilters() {
+      document.getElementById('dt-filter-search').value = '';
+      document.getElementById('dt-filter-province').value = '';
+      document.getElementById('dt-filter-carrier').value = '';
+      document.getElementById('dt-filter-date-from').value = '';
+      document.getElementById('dt-filter-date-to').value = '';
+      renderDataTableRows(postOfficesData);
+    }
+
+    function renderDataTable() {
+      applyDataTableFilters();
+    }
+
+    function renderDataTableRows(list) {
+      const tbody = document.getElementById('table-data-body');
+      tbody.innerHTML = list.map(po => {
+        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+        const gmapsLink = (po.lat && po.lng) 
+          ? `<a href="https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}" target="_blank" class="text-blue-600 font-bold hover:underline">Xem Maps &rarr;</a>` 
+          : '—';
+        const formattedDate = formatDateTimeVN(po.updatedAt);
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="p-2.5 border-r font-bold">${po.code}</td>
+            <td class="p-2.5 border-r">${po.name}</td>
+            <td class="p-2.5 border-r font-bold" style="color:${conf.color}">${po.carrier}</td>
+            <td class="p-2.5 border-r">${po.provinceId}</td>
+            <td class="p-2.5 border-r font-mono">${po.lat && po.lng ? `${po.lat.toFixed(3)}, ${po.lng.toFixed(3)}` : '<span class="text-amber-600 bg-amber-50 px-1 rounded">Chờ định vị</span>'}</td>
+            <td class="p-2.5 border-r text-right font-medium">${po.dailyOrders ? Math.round(po.dailyOrders).toLocaleString() : '—'}</td>
+            <td class="p-2.5 border-r text-right font-medium">${po.trucks ?? '—'}</td>
+            <td class="p-2.5 border-r text-gray-500 whitespace-nowrap">${formattedDate}</td>
+            <td class="p-2.5 border-r text-center">${gmapsLink}</td>
+            <td class="p-2.5 border-r text-center"><span class="px-2 py-0.5 rounded text-[10px] ${po.lat ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${po.lat ? 'Hoạt động' : 'Chờ tọa độ'}</span></td>
+            <td class="p-2.5 text-center space-x-2">
+              <button onclick="editOffice('${po.id}')" title="Chỉnh sửa" class="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteOffice('${po.id}')" title="Xóa bưu cục" class="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- 8. QUẢN LÝ VÙNG NHỎ, MODAL & SUPABASE SYNC ---
     function openCreateSubZoneModal() {
       document.getElementById('subzone-name').value = '';
       const currentProv = Array.from(selectedProvinceIds)[0] || 'HNI';
@@ -687,22 +1274,10 @@
       const checkedBoxes = document.querySelectorAll('.subzone-office-cb:checked');
       const selectedIds = Array.from(checkedBoxes).map(cb => cb.value);
 
-      if (!name) {
-        alert("Vui lòng nhập tên Vùng nhỏ / Cụm!");
-        return;
-      }
-      if (selectedIds.length === 0) {
-        alert("Vui lòng tích chọn ít nhất 1 bưu cục cho cụm này!");
-        return;
-      }
+      if (!name) { alert("Vui lòng nhập tên Vùng nhỏ / Cụm!"); return; }
+      if (selectedIds.length === 0) { alert("Vui lòng tích chọn ít nhất 1 bưu cục cho cụm này!"); return; }
 
-      const newSubZone = {
-        id: `SZ-${Date.now()}`,
-        name: name,
-        provinceId: provinceId,
-        officeIds: selectedIds
-      };
-
+      const newSubZone = { id: `SZ-${Date.now()}`, name: name, provinceId: provinceId, officeIds: selectedIds };
       customSubZones.push(newSubZone);
       localStorage.setItem('saved_sub_zones', JSON.stringify(customSubZones));
       closeModal('modal-subzone');
@@ -804,7 +1379,6 @@
       }
     }
 
-    // --- 7. RENDER DANH SÁCH 25 TỈNH ---
     function renderAccordion(searchTerm = '') {
       const container = document.getElementById('accordion-container');
       container.innerHTML = '';
@@ -937,7 +1511,6 @@
         titleEl.title = Array.from(selectedProvinceIds).map(id => ALL_PROVINCES.find(p => p.id === id)?.name).join(', ');
       }
 
-      // VẼ VÒNG KHOANH TRÒN NẾU ĐANG BẬT
       if (showHighlightCircles) {
         selectedProvinceIds.forEach(id => {
           const prov = ALL_PROVINCES.find(p => p.id === id);
@@ -965,155 +1538,6 @@
       renderStats();
     }
 
-    // --- 8. RENDER MARKERS VỚI CHỮ NỔI KHI ZOOM LỚN ---
-    function renderMarkers() {
-      markerClusterGroup.clearLayers();
-
-      const pointsToDisplay = postOfficesData.filter(po => {
-        if (!visibleCarriers.has(po.carrier)) return false;
-        if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
-        if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
-        return true;
-      });
-
-      pointsToDisplay.forEach(po => {
-        if (!po.lat || !po.lng) return;
-
-        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
-        const ordersText = po.dailyOrders ? `${Math.round(po.dailyOrders).toLocaleString('vi-VN')} đơn/ngày` : '— đơn';
-
-        // TẠO ICON CHẤM MÀU KÈM DÒNG CHỮ NỔI THÔNG TIN
-        const icon = L.divIcon({
-          className: 'custom-office-marker',
-          html: `
-            <div class="relative flex flex-col items-center">
-              <div class="custom-pin ${conf.class}">${conf.label}</div>
-              <!-- DÒNG CHỮ NỔI HIỆN RA KHI ZOOM RÕ -->
-              <div class="office-sublabel mt-1 px-2 py-0.5 bg-white/95 backdrop-blur-sm rounded-md border border-gray-300 shadow-lg text-center pointer-events-none whitespace-nowrap z-50">
-                <div class="text-[11px] font-bold text-gray-800 leading-tight">
-                  <span style="color: ${conf.color};">[${po.code}]</span> ${po.name}
-                </div>
-                <div class="text-[10px] text-gray-500 font-medium leading-tight">
-                  Sản lượng: <b class="text-gray-700">${ordersText}</b>
-                </div>
-              </div>
-            </div>
-          `,
-          iconSize: [30, 30],
-          iconAnchor: [15, 15]
-        });
-
-        const marker = L.marker([po.lat, po.lng], { icon: icon });
-        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}`;
-
-        marker.bindPopup(`
-          <div class="text-xs p-1">
-            <b class="text-sm font-bold" style="color:${conf.color}">[${po.carrier}] • ${po.name}</b><br/>
-            <span class="text-gray-500">${po.address || ''}</span><br/>
-            <div class="mt-2 flex items-center justify-between">
-              <a href="${googleMapsUrl}" target="_blank" class="text-blue-600 font-bold hover:underline">
-                📍 Mở Google Maps &rarr;
-              </a>
-            </div>
-          </div>
-        `);
-
-        marker.on('click', () => showOfficeDetail(po));
-        markerClusterGroup.addLayer(marker);
-      });
-    }
-
-    function toggleCarrier(carrierName, isChecked) {
-      if (isChecked) visibleCarriers.add(carrierName);
-      else visibleCarriers.delete(carrierName);
-      renderMarkers();
-    }
-
-    function renderStats() {
-      const tbody = document.getElementById('metrics-tbody');
-      const isDaily = document.getElementById('check-daily').checked;
-      document.getElementById('th-orders').innerText = isDaily ? 'Đơn/ngày' : 'Tổng đơn kỳ';
-
-      const carrierNames = ['J&T', 'GHN', 'Viettel Post', 'SPX'];
-
-      tbody.innerHTML = carrierNames.map(cName => {
-        const conf = CARRIERS[cName];
-        
-        const filteredOffices = postOfficesData.filter(po => {
-          if (po.carrier !== cName) return false;
-          if (activeSubZone) return activeSubZone.officeIds.includes(po.id);
-          if (selectedProvinceIds.size > 0) return selectedProvinceIds.has(po.provinceId);
-          return true;
-        });
-
-        const offices = filteredOffices.length;
-        let sumOrders = 0;
-        let hasOrderData = false;
-        let sumTrucks = 0;
-        let hasTruckData = false;
-
-        filteredOffices.forEach(po => {
-          if (po.dailyOrders !== null && po.dailyOrders !== undefined) {
-            sumOrders += isDaily ? po.dailyOrders : po.dailyOrders * 30;
-            hasOrderData = true;
-          }
-          if (po.trucks !== null && po.trucks !== undefined) {
-            sumTrucks += po.trucks;
-            hasTruckData = true;
-          }
-        });
-
-        const ordersDisplay = hasOrderData ? Math.round(sumOrders).toLocaleString('vi-VN') : '—';
-        const officeDisplay = offices > 0 ? offices : '—';
-        const truckDisplay = hasTruckData ? sumTrucks : '—';
-
-        return `
-          <tr class="hover:bg-gray-50/80">
-            <td class="py-2.5 flex items-center space-x-2">
-              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${conf.color}"></span>
-              <span class="font-bold text-gray-800">${cName}</span>
-            </td>
-            <td class="py-2.5 text-right font-semibold text-gray-700">${ordersDisplay}</td>
-            <td class="py-2.5 text-right text-gray-700">${officeDisplay}</td>
-            <td class="py-2.5 text-right text-gray-700">${truckDisplay}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-
-    function updateView() { renderStats(); }
-
-    function showOfficeDetail(po) {
-      const card = document.getElementById('office-detail-card');
-      const badge = document.getElementById('card-badge');
-      const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
-
-      badge.style.backgroundColor = conf.color;
-      badge.innerText = conf.label;
-
-      document.getElementById('card-name').innerText = `${po.carrier} • ${po.name}`;
-      document.getElementById('card-code').innerText = `Mã: ${po.code} (Tỉnh: ${po.provinceId})`;
-      document.getElementById('card-address').innerHTML = `<i class="fa-solid fa-location-dot mr-1 text-gray-400"></i> ${po.address || 'Chưa cập nhật địa chỉ'}`;
-      document.getElementById('card-orders').innerText = po.dailyOrders ? `${Math.round(po.dailyOrders).toLocaleString()} đơn/ngày` : '—';
-      document.getElementById('card-trucks').innerText = po.trucks ? `${po.trucks} xe` : '—';
-
-      const gmapsBtn = document.getElementById('card-google-maps-btn');
-      if (po.lat && po.lng) {
-        gmapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}`;
-        gmapsBtn.classList.remove('opacity-50', 'pointer-events-none');
-      } else {
-        gmapsBtn.classList.add('opacity-50', 'pointer-events-none');
-      }
-
-      document.getElementById('card-edit-btn').onclick = () => editOffice(po.id);
-      card.classList.remove('hidden');
-    }
-
-    function closeOfficeCard() {
-      document.getElementById('office-detail-card').classList.add('hidden');
-    }
-
-    // --- 9. CẬP NHẬT / SỬA / XÓA LÊN CLOUD ---
     function editOffice(id) {
       const po = postOfficesData.find(item => item.id == id);
       if (!po) return;
@@ -1198,7 +1622,8 @@
       }
 
       const hasCoord = !isNaN(lat) && !isNaN(lng);
-      const recordId = code; // DÙNG MÃ BƯU CỤC LÀM ID ĐỂ CHỐNG TRÙNG LẶP
+      const recordId = code;
+      const nowIso = new Date().toISOString();
 
       const payload = {
         id: recordId,
@@ -1210,7 +1635,8 @@
         lng: hasCoord ? lng : null,
         address: address,
         daily_orders: !isNaN(orders) ? orders : null,
-        trucks: !isNaN(trucks) ? trucks : null
+        trucks: !isNaN(trucks) ? trucks : null,
+        updated_at: nowIso
       };
 
       if (supabaseClient) {
@@ -1246,41 +1672,10 @@
       }
     }
 
-    function renderDataTable() {
-      const tbody = document.getElementById('table-data-body');
-      tbody.innerHTML = postOfficesData.map(po => {
-        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
-        const gmapsLink = (po.lat && po.lng) 
-          ? `<a href="https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}" target="_blank" class="text-blue-600 font-bold hover:underline">Xem Maps &rarr;</a>` 
-          : '—';
-        return `
-          <tr class="hover:bg-gray-50">
-            <td class="p-2.5 border-r font-bold">${po.code}</td>
-            <td class="p-2.5 border-r">${po.name}</td>
-            <td class="p-2.5 border-r font-bold" style="color:${conf.color}">${po.carrier}</td>
-            <td class="p-2.5 border-r">${po.provinceId}</td>
-            <td class="p-2.5 border-r font-mono">${po.lat && po.lng ? `${po.lat.toFixed(3)}, ${po.lng.toFixed(3)}` : '<span class="text-amber-600 bg-amber-50 px-1 rounded">Chờ định vị</span>'}</td>
-            <td class="p-2.5 border-r text-right font-medium">${po.dailyOrders ? Math.round(po.dailyOrders).toLocaleString() : '—'}</td>
-            <td class="p-2.5 border-r text-right font-medium">${po.trucks ?? '—'}</td>
-            <td class="p-2.5 border-r text-center">${gmapsLink}</td>
-            <td class="p-2.5 border-r text-center"><span class="px-2 py-0.5 rounded text-[10px] ${po.lat ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">${po.lat ? 'Hoạt động' : 'Chờ tọa độ'}</span></td>
-            <td class="p-2.5 text-center space-x-2">
-              <button onclick="editOffice('${po.id}')" title="Chỉnh sửa" class="text-blue-600 hover:text-blue-800 p-1 hover:bg-blue-50 rounded transition">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button onclick="deleteOffice('${po.id}')" title="Xóa bưu cục" class="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded transition">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-    }
-
     function exportCurrentDataToCSV() {
-      let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe\n";
+      let csv = "Mã bưu cục,Tên bưu cục,Hãng,Mã tỉnh,Vĩ độ,Kinh độ,Địa chỉ,Đơn/ngày,Số xe,Thời điểm cập nhật\n";
       postOfficesData.forEach(po => {
-        csv += `"${po.code}","${po.name}","${po.carrier}","${po.provinceId}","${po.lat || ''}","${po.lng || ''}","${po.address || ''}","${po.dailyOrders || ''}","${po.trucks || ''}"\n`;
+        csv += `"${po.code}","${po.name}","${po.carrier}","${po.provinceId}","${po.lat || ''}","${po.lng || ''}","${po.address || ''}","${po.dailyOrders || ''}","${po.trucks || ''}","${formatDateTimeVN(po.updatedAt)}"\n`;
       });
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -1305,7 +1700,7 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 10. NHẬP FILE TỔNG HỢP VỚI CHỐNG TRÙNG VÀ NHẬN DIỆN ĐÚNG HÃNG ---
+    // --- 9. BỘ NHẬP FILE ĐA NĂNG KÈM GHI NHẬN THỜI ĐIỂM ĐỒNG BỘ ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1365,6 +1760,7 @@
       let accepted = 0;
       let rejectedOutOfBounds = 0;
       let uploadBatch = [];
+      const batchTimestamp = new Date().toISOString(); // THỜI ĐIỂM DÙNG CHUNG CHO CẢ LẦN NHẬP
 
       rows.forEach((row, idx) => {
         const getField = (candidates) => {
@@ -1380,7 +1776,7 @@
         const code = String(getField(['Mã bưu cục', 'mã ttnk', 'code', 'mã']) || `BC-${idx+1}`).trim();
         const name = String(getField(['Tên bưu cục', 'name', 'tên']) || code).trim();
         const rawCarrier = String(getField(['Hãng', 'carrier'])).trim();
-        const carrier = detectCarrier(name, '', rawCarrier); // TỰ ĐỘNG NHẬN DIỆN ĐÚNG HÃNG
+        const carrier = detectCarrier(name, '', rawCarrier);
 
         let rawProv = String(getField(['Mã tỉnh', 'province_id', 'tỉnh']) || '').trim().toUpperCase();
 
@@ -1405,7 +1801,7 @@
         const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
 
         uploadBatch.push({
-          id: code, // DÙNG MÃ BƯU CỤC LÀM ID ĐỂ TỰ ĐỘNG GHI ĐÈ KHI TRÙNG
+          id: code,
           code: code,
           name: name,
           carrier: carrier,
@@ -1414,7 +1810,8 @@
           lng: hasCoord ? lngVal : null,
           address: address,
           daily_orders: !isNaN(ordersVal) ? ordersVal : null,
-          trucks: !isNaN(trucksVal) ? trucksVal : null
+          trucks: !isNaN(trucksVal) ? trucksVal : null,
+          updated_at: batchTimestamp
         });
         accepted++;
       });
@@ -1441,13 +1838,15 @@
       }
 
       let uploadBatch = [];
+      const batchTimestamp = new Date().toISOString();
+
       for (let i = 0; i < placemarks.length; i++) {
         const p = placemarks[i];
         const name = p.getElementsByTagName("name")[0]?.textContent.trim() || `BC-${i+1}`;
         const desc = p.getElementsByTagName("description")[0]?.textContent || "";
 
         let code = desc.match(/Mã TTNK(?:\s*网点)?:\s*([A-Za-z0-9_-]+)/i)?.[1] || name.match(/([0-9]{3}[A-Z][0-9]{2})/)?.[1] || `BC-${i+1}`;
-        const carrier = detectCarrier(name, desc, ''); // TỰ ĐỘNG PHÁT HIỆN HÃNG (J&T, GHN, VIETTEL, SPX)
+        const carrier = detectCarrier(name, desc, '');
 
         let provId = "HNI";
         const provMatch = name.match(/\(([A-Za-zĐđ]+)\)/);
@@ -1477,7 +1876,7 @@
 
         if (VALID_PROVINCE_CODES.has(provId)) {
           uploadBatch.push({
-            id: code, // DÙNG MÃ ĐỂ GHI ĐÈ TRÙNG LẶP
+            id: code,
             code: code,
             name: name,
             carrier: carrier,
@@ -1486,7 +1885,8 @@
             lng: lng,
             address: address,
             daily_orders: !isNaN(orders) ? orders : null,
-            trucks: null
+            trucks: null,
+            updated_at: batchTimestamp
           });
         }
       }
@@ -1499,7 +1899,7 @@
       }
 
       await loadDataFromCloud();
-      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã cập nhật thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
+      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã nạp thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
     }
 
     window.onload = initMap;
