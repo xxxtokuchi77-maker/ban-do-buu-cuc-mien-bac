@@ -193,7 +193,7 @@
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="font-semibold text-gray-700">Cỡ chữ nhãn:</label>
+              <label class="font-semibold text-gray-700">C cỡ chữ nhãn:</label>
               <span id="cfg-font-size-text" class="font-bold theme-text">11px</span>
             </div>
             <input type="range" id="cfg-font-size" min="10" max="14" step="1" value="11" oninput="updateLabelFontSize(this.value)" class="w-full">
@@ -338,7 +338,7 @@
               <i class="fa-solid fa-xmark text-xs"></i>
             </button>
           </div>
-          <div class="space-y-2" id="legend-carriers-list"></div>
+          <div class="space-y-2 max-h-60 overflow-y-auto" id="legend-carriers-list"></div>
         </div>
 
         <!-- OFFICE DETAIL CARD -->
@@ -518,8 +518,8 @@
         <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
           <div class="font-semibold text-xs text-gray-700">Thêm ĐVVC mới:</div>
           <div class="grid grid-cols-12 gap-2 text-xs">
-            <input type="text" id="new-carrier-name" placeholder="Tên ĐVVC (VD: Best Express)" class="col-span-5 border border-gray-300 rounded px-2 py-1">
-            <input type="text" id="new-carrier-label" placeholder="Viết tắt (VD: BEST)" class="col-span-4 border border-gray-300 rounded px-2 py-1">
+            <input type="text" id="new-carrier-name" placeholder="Tên ĐVVC" class="col-span-5 border border-gray-300 rounded px-2 py-1">
+            <input type="text" id="new-carrier-label" placeholder="Viết tắt" class="col-span-4 border border-gray-300 rounded px-2 py-1">
             <input type="color" id="new-carrier-color" value="#8b5cf6" class="col-span-3 border border-gray-300 rounded h-7 w-full cursor-pointer">
           </div>
           <button onclick="addNewCarrier()" class="w-full bg-purple-600 hover:bg-purple-700 text-white rounded py-1.5 text-xs font-semibold transition">
@@ -733,17 +733,21 @@
       VALID_PROVINCE_CODES.add(p.id);
     }));
 
-    // CẤU HÌNH ĐVVC MẶC ĐỊNH VÀ TỰ CHỌN (LƯU LOCALSTORAGE)
-    const DEFAULT_CARRIERS = {
+    // DANH SÁCH 8 HÃNG ĐÃ ĐƯỢC TÍCH HỢP TRỰC TIẾP VÀO CODE
+    const BUILTIN_CARRIERS = {
       'J&T': { color: '#E11B22', label: 'J&T' },
       'GHN': { color: '#0052CC', label: 'GHN' },
       'Viettel Post': { color: '#F8B105', label: 'VTP' },
-      'SPX': { color: '#F05326', label: 'SPX' }
+      'SPX': { color: '#F05326', label: 'SPX' },
+      'Best Express': { color: '#8B5CF6', label: 'BEST' },
+      'Giao Hàng Tiết Kiệm': { color: '#10B981', label: 'GHTK' },
+      'Ninja Van': { color: '#D97706', label: 'NINJA' },
+      'VNPost': { color: '#0284C7', label: 'VNPOST' }
     };
 
-    let CARRIERS = JSON.parse(localStorage.getItem('saved_custom_carriers')) || DEFAULT_CARRIERS;
+    let savedCustom = JSON.parse(localStorage.getItem('saved_custom_carriers')) || {};
+    let CARRIERS = { ...BUILTIN_CARRIERS, ...savedCustom };
 
-    // CẤU HÌNH MÀU CHỦ ĐỀ
     const THEME_COLORS = [
       { name: 'Đỏ', main: '#E11B22', hover: '#b91218', bgLight: '#fef2f2' },
       { name: 'Xanh dương', main: '#2563eb', hover: '#1d4ed8', bgLight: '#eff6ff' },
@@ -785,6 +789,10 @@
       if (full.includes('ghn') || full.includes('giao hàng nhanh')) return 'GHN';
       if (full.includes('viettel') || full.includes('vtp')) return 'Viettel Post';
       if (full.includes('spx') || full.includes('shopee')) return 'SPX';
+      if (full.includes('best')) return 'Best Express';
+      if (full.includes('ghtk') || full.includes('tiết kiệm')) return 'Giao Hàng Tiết Kiệm';
+      if (full.includes('ninja')) return 'Ninja Van';
+      if (full.includes('vnpost') || full.includes('bưu điện')) return 'VNPost';
       if (full.includes('j&t') || full.includes('jnt') || full.includes('jt')) return 'J&T';
       return Object.keys(CARRIERS)[0] || 'J&T';
     }
@@ -824,7 +832,6 @@
     }
 
     function renderCarrierUI() {
-      // 1. Quản lý ĐVVC Modal
       const containerMgr = document.getElementById('carriers-list-container');
       containerMgr.innerHTML = Object.entries(CARRIERS).map(([cName, conf]) => `
         <div class="flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-100">
@@ -838,7 +845,6 @@
         </div>
       `).join('');
 
-      // 2. Chú giải bưu cục (Góc trái bản đồ)
       const legendList = document.getElementById('legend-carriers-list');
       legendList.innerHTML = Object.entries(CARRIERS).map(([cName, conf]) => `
         <label class="flex items-center space-x-2 cursor-pointer select-none">
@@ -848,7 +854,6 @@
         </label>
       `).join('');
 
-      // 3. Dropdown thêm mới / lọc bưu cục
       const carrierOptions = Object.keys(CARRIERS).map(c => `<option value="${c}">${c}</option>`).join('');
       document.getElementById('office-modal-carrier').innerHTML = carrierOptions;
       document.getElementById('dt-filter-carrier').innerHTML = '<option value="">-- Tất cả các hãng --</option>' + carrierOptions;
