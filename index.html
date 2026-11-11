@@ -12,21 +12,29 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <style>
+    :root {
+      --theme-color: #E11B22;
+      --theme-hover: #b91218;
+      --theme-bg-light: #fef2f2;
+    }
+
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     #map { height: calc(100vh - 64px); width: 100%; z-index: 10; background-color: #f2efe9; }
     
+    .theme-bg { background-color: var(--theme-color) !important; }
+    .theme-bg-hover:hover { background-color: var(--theme-hover) !important; }
+    .theme-text { color: var(--theme-color) !important; }
+    .theme-border { border-color: var(--theme-color) !important; }
+
     .custom-pin {
       display: flex; align-items: center; justify-content: center;
       width: 28px; height: 28px; border-radius: 50%;
       border: 2px solid #ffffff; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
       font-size: 9px; font-weight: 800; flex-shrink: 0;
       transition: transform 0.15s ease;
+      color: #ffffff;
     }
     .custom-pin:hover { transform: scale(1.15); }
-    .pin-jt { background-color: #E11B22; color: #fff; }
-    .pin-ghn { background-color: #0052CC; color: #fff; }
-    .pin-viettel { background-color: #F8B105; color: #111; }
-    .pin-spx { background-color: #F05326; color: #fff; }
 
     .custom-office-marker { overflow: visible !important; }
     .office-sublabel-tag {
@@ -64,13 +72,10 @@
       font-weight: 800;
       white-space: nowrap;
       cursor: pointer;
+      color: #ffffff;
       transition: transform 0.15s ease;
     }
     .carrier-cluster-badge:hover { transform: scale(1.1); }
-    .cluster-jt { background-color: #E11B22; color: #ffffff; }
-    .cluster-ghn { background-color: #0052CC; color: #ffffff; }
-    .cluster-viettel { background-color: #F8B105; color: #111827; }
-    .cluster-spx { background-color: #F05326; color: #ffffff; }
   </style>
 </head>
 <body class="bg-gray-100 flex flex-col h-screen overflow-hidden">
@@ -78,7 +83,7 @@
   <!-- TOPBAR -->
   <header class="h-16 bg-white border-b border-gray-200 px-4 flex items-center justify-between shrink-0 z-30 shadow-sm">
     <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-2 text-red-600 font-bold text-xl tracking-tight">
+      <div class="flex items-center space-x-2 font-bold text-xl tracking-tight theme-text">
         <i class="fa-solid fa-truck-fast"></i>
         <span>Logistics</span>
       </div>
@@ -93,7 +98,7 @@
     </div>
 
     <div class="flex items-center space-x-2">
-      <button onclick="setTab('map')" id="btn-tab-map" class="bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm transition">
+      <button onclick="setTab('map')" id="btn-tab-map" class="theme-bg theme-bg-hover text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm transition">
         <i class="fa-solid fa-map-location-dot"></i>
         <span>Bản đồ</span>
       </button>
@@ -104,26 +109,44 @@
 
       <div class="h-5 w-px bg-gray-200 mx-1"></div>
 
+      <!-- QUẢN LÝ ĐVVC TỰ CHỌN -->
+      <button onclick="openModal('modal-carriers-mgr')" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Thêm/sửa Đơn vị vận chuyển">
+        <i class="fa-solid fa-boxes-packing text-purple-600"></i>
+        <span class="hidden md:inline">Quản lý ĐVVC</span>
+      </button>
+
+      <!-- CHỌN MÀU CHỦ ĐỀ -->
+      <div class="relative">
+        <button onclick="toggleThemePicker()" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Đổi màu giao diện">
+          <i class="fa-solid fa-palette text-pink-600"></i>
+          <span class="hidden md:inline">Màu chủ đề</span>
+        </button>
+        <div id="theme-picker-panel" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-200 p-3 z-[1000] text-xs">
+          <div class="font-bold text-gray-700 mb-2 pb-1 border-b">Chọn màu chủ đề</div>
+          <div class="grid grid-cols-5 gap-2" id="theme-color-options"></div>
+        </div>
+      </div>
+
       <button onclick="toggleAreaStatsWidget()" id="btn-toggle-stats" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Bật/Tắt bảng thống kê góc phải">
         <i class="fa-solid fa-chart-pie text-blue-600"></i>
-        <span class="hidden md:inline">Thông tin khu vực</span>
+        <span class="hidden md:inline">Thông tin</span>
       </button>
 
       <button onclick="toggleLegendWidget()" id="btn-toggle-legend" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Bật/Tắt chú giải góc trái">
         <i class="fa-solid fa-list-check text-green-600"></i>
-        <span class="hidden md:inline">Chú giải bưu cục</span>
+        <span class="hidden md:inline">Chú giải</span>
       </button>
 
       <div class="relative">
         <button onclick="toggleLabelSettingsPanel()" id="btn-label-settings" class="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2.5 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition" title="Tùy chỉnh nhãn bưu cục">
           <i class="fa-solid fa-tags text-amber-600"></i>
-          <span>Nhãn bưu cục</span>
+          <span>Nhãn</span>
         </button>
 
         <div id="label-settings-panel" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 p-4 z-[1000] text-xs space-y-3">
           <div class="flex items-center justify-between pb-2 border-b border-gray-100">
             <span class="font-bold text-gray-800 text-sm flex items-center space-x-1.5">
-              <i class="fa-solid fa-sliders text-red-600"></i>
+              <i class="fa-solid fa-sliders theme-text"></i>
               <span>Cài đặt nhãn bưu cục</span>
             </span>
             <button onclick="toggleLabelSettingsPanel()" class="text-gray-400 hover:text-gray-600">
@@ -142,15 +165,15 @@
             <label class="block font-semibold text-gray-700 mb-1">Các thông tin hiển thị trên nhãn:</label>
             <div class="space-y-1.5 bg-gray-50 p-2.5 rounded border border-gray-200">
               <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="cfg-lbl-name" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <input type="checkbox" id="cfg-lbl-name" checked onchange="updateLabelConfig()" class="rounded theme-text focus:ring-0">
                 <span class="font-medium text-gray-800">Tên bưu cục</span>
               </label>
               <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="cfg-lbl-code" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <input type="checkbox" id="cfg-lbl-code" checked onchange="updateLabelConfig()" class="rounded theme-text focus:ring-0">
                 <span class="font-medium text-gray-800">Mã bưu cục</span>
               </label>
               <label class="flex items-center space-x-2 cursor-pointer">
-                <input type="checkbox" id="cfg-lbl-orders" checked onchange="updateLabelConfig()" class="rounded text-red-600 focus:ring-0">
+                <input type="checkbox" id="cfg-lbl-orders" checked onchange="updateLabelConfig()" class="rounded theme-text focus:ring-0">
                 <span class="font-medium text-gray-800">Lượng đơn</span>
               </label>
             </div>
@@ -159,11 +182,11 @@
             <label class="block font-semibold text-gray-700 mb-1">Định dạng lượng đơn:</label>
             <div class="flex items-center space-x-4 bg-gray-50 p-2 rounded border border-gray-200">
               <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="cfg-order-type" value="daily" checked onchange="updateLabelConfig()" class="text-red-600 focus:ring-0">
+                <input type="radio" name="cfg-order-type" value="daily" checked onchange="updateLabelConfig()" class="theme-text focus:ring-0">
                 <span>Bình quân ngày</span>
               </label>
               <label class="flex items-center space-x-1.5 cursor-pointer">
-                <input type="radio" name="cfg-order-type" value="monthly" onchange="updateLabelConfig()" class="text-red-600 focus:ring-0">
+                <input type="radio" name="cfg-order-type" value="monthly" onchange="updateLabelConfig()" class="theme-text focus:ring-0">
                 <span>Tổng đơn kỳ</span>
               </label>
             </div>
@@ -171,12 +194,9 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="font-semibold text-gray-700">Cỡ chữ nhãn:</label>
-              <span id="cfg-font-size-text" class="font-bold text-red-600">11px</span>
+              <span id="cfg-font-size-text" class="font-bold theme-text">11px</span>
             </div>
-            <input type="range" id="cfg-font-size" min="10" max="14" step="1" value="11" oninput="updateLabelFontSize(this.value)" class="w-full accent-red-600">
-            <div class="flex justify-between text-[10px] text-gray-400 mt-0.5">
-              <span>10px</span><span>11px</span><span>12px</span><span>13px</span><span>14px</span>
-            </div>
+            <input type="range" id="cfg-font-size" min="10" max="14" step="1" value="11" oninput="updateLabelFontSize(this.value)" class="w-full">
           </div>
         </div>
       </div>
@@ -189,7 +209,7 @@
       </button>
       <button onclick="document.getElementById('excel-file-input').click()" class="bg-white hover:bg-red-50 text-red-600 border border-red-300 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center space-x-1 transition">
         <i class="fa-regular fa-file-excel"></i>
-        <span>Nhập Excel/KML</span>
+        <span>Nhập File</span>
       </button>
       <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls, .csv, .kml" onchange="handleUniversalFileUpload(event)" />
     </div>
@@ -209,7 +229,7 @@
 
         <div id="sidebar-content" class="flex flex-col h-full overflow-hidden">
           <div class="flex border-b border-gray-200 bg-gray-50 text-xs font-bold text-gray-600">
-            <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white">
+            <button onclick="setSidebarTab('provinces')" id="tab-btn-prov" class="flex-1 py-2.5 text-center theme-text border-b-2 theme-border bg-white">
               25 Tỉnh/Thành
             </button>
             <button onclick="setSidebarTab('subzones')" id="tab-btn-subzones" class="flex-1 py-2.5 text-center hover:text-red-600 transition flex items-center justify-center space-x-1">
@@ -227,7 +247,7 @@
               </div>
               <div class="flex items-center justify-between mt-2.5 px-1 text-[11px]">
                 <span class="text-gray-500">Tích chọn xem nhiều tỉnh:</span>
-                <button onclick="clearProvinceSelection()" class="text-red-600 hover:underline font-semibold">Bỏ chọn hết</button>
+                <button onclick="clearProvinceSelection()" class="theme-text hover:underline font-semibold">Bỏ chọn hết</button>
               </div>
             </div>
             <div class="overflow-y-auto flex-1 divide-y divide-gray-100" id="accordion-container"></div>
@@ -236,7 +256,7 @@
           <div id="sidebar-panel-subzones" class="hidden flex-col flex-1 overflow-hidden p-3">
             <div class="flex items-center justify-between pb-3 border-b border-gray-200">
               <span class="text-xs text-gray-500 font-medium">Khoanh vùng cụm tự chọn:</span>
-              <button onclick="openCreateSubZoneModal()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1 shadow-sm">
+              <button onclick="openCreateSubZoneModal()" class="theme-bg theme-bg-hover text-white px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1 shadow-sm">
                 <i class="fa-solid fa-plus text-[10px]"></i>
                 <span>Tạo vùng nhỏ</span>
               </button>
@@ -251,7 +271,7 @@
 
         <div class="absolute top-4 left-14 z-[400] flex items-center space-x-2">
           <button onclick="selectEntireNorth()" class="bg-white border border-gray-300 shadow-md px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-50 flex items-center space-x-1.5 transition">
-            <i class="fa-solid fa-expand text-red-600"></i>
+            <i class="fa-solid fa-expand theme-text"></i>
             <span>Toàn miền Bắc</span>
           </button>
           
@@ -265,9 +285,9 @@
         <div id="stats-panel" class="absolute top-4 right-4 z-[400] w-96 bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-200 p-4 transition-all duration-200">
           <div class="flex items-center justify-between pb-3 border-b border-gray-100">
             <div class="max-w-[210px]">
-              <h2 id="stats-target-title" class="text-sm font-extrabold text-red-600 uppercase tracking-wide truncate" title="TOÀN MIỀN BẮC">TOÀN MIỀN BẮC</h2>
+              <h2 id="stats-target-title" class="text-sm font-extrabold theme-text uppercase tracking-wide truncate" title="TOÀN MIỀN BẮC">TOÀN MIỀN BẮC</h2>
               <div class="text-[11px] text-gray-500 flex items-center space-x-1 mt-0.5">
-                <i class="fa-solid fa-circle-dot text-red-500"></i>
+                <i class="fa-solid fa-circle-dot theme-text"></i>
                 <span id="stats-data-status">Khoanh vùng hình tròn theo địa bàn</span>
               </div>
             </div>
@@ -279,7 +299,7 @@
                   <option value="2026-10">Tháng 10/2026</option>
                 </select>
                 <div class="flex items-center space-x-1 text-[11px] text-gray-600">
-                  <input type="checkbox" id="check-daily" onchange="updateView()" class="rounded text-red-600">
+                  <input type="checkbox" id="check-daily" onchange="updateView()" class="rounded theme-text">
                   <label for="check-daily">Bình quân ngày</label>
                 </div>
               </div>
@@ -303,7 +323,7 @@
 
           <div class="mt-3.5 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs">
             <span class="text-[11px] text-gray-400 font-medium">— : Chưa có dữ liệu</span>
-            <button onclick="openNewOfficeModal()" class="text-red-600 hover:text-red-700 border border-red-200 hover:border-red-400 bg-red-50/60 px-3 py-1 rounded font-semibold flex items-center space-x-1 transition">
+            <button onclick="openNewOfficeModal()" class="theme-text border border-red-200 hover:border-red-400 bg-red-50/60 px-3 py-1 rounded font-semibold flex items-center space-x-1 transition">
               <i class="fa-solid fa-plus text-[10px]"></i>
               <span>Thêm bưu cục mới</span>
             </button>
@@ -318,31 +338,7 @@
               <i class="fa-solid fa-xmark text-xs"></i>
             </button>
           </div>
-          <div class="space-y-2">
-            <label class="flex items-center space-x-2 cursor-pointer select-none">
-              <input type="checkbox" checked onchange="toggleCarrier('J&T', this.checked)" class="rounded text-red-600 focus:ring-0">
-              <span class="w-3.5 h-3.5 rounded-full bg-[#E11B22] inline-block shrink-0"></span>
-              <span class="font-bold text-gray-800">J&T</span>
-              <span class="text-gray-400 text-[11px]">- J&T Express</span>
-            </label>
-            <label class="flex items-center space-x-2 cursor-pointer select-none">
-              <input type="checkbox" checked onchange="toggleCarrier('GHN', this.checked)" class="rounded text-blue-600 focus:ring-0">
-              <span class="w-3.5 h-3.5 rounded-full bg-[#0052CC] inline-block shrink-0"></span>
-              <span class="font-bold text-gray-800">GHN</span>
-              <span class="text-gray-400 text-[11px]">- Giao Hàng Nhanh</span>
-            </label>
-            <label class="flex items-center space-x-2 cursor-pointer select-none">
-              <input type="checkbox" checked onchange="toggleCarrier('Viettel Post', this.checked)" class="rounded text-yellow-500 focus:ring-0">
-              <span class="w-3.5 h-3.5 rounded-full bg-[#F8B105] inline-block shrink-0"></span>
-              <span class="font-bold text-gray-800">Viettel Post</span>
-            </label>
-            <label class="flex items-center space-x-2 cursor-pointer select-none">
-              <input type="checkbox" checked onchange="toggleCarrier('SPX', this.checked)" class="rounded text-orange-600 focus:ring-0">
-              <span class="w-3.5 h-3.5 rounded-full bg-[#F05326] inline-block shrink-0"></span>
-              <span class="font-bold text-gray-800">SPX</span>
-              <span class="text-gray-400 text-[11px]">- SPX Express</span>
-            </label>
-          </div>
+          <div class="space-y-2" id="legend-carriers-list"></div>
         </div>
 
         <!-- OFFICE DETAIL CARD -->
@@ -398,7 +394,7 @@
         <div>
           <h2 class="text-lg font-bold text-gray-800">Quản lý bưu cục trực tuyến (25 Tỉnh Miền Bắc)</h2>
           <p class="text-xs text-gray-500 mt-0.5">
-            Lần cập nhật dữ liệu gần nhất: <b id="last-update-banner" class="text-red-600">Chưa ghi nhận</b>
+            Lần cập nhật dữ liệu gần nhất: <b id="last-update-banner" class="theme-text">Chưa ghi nhận</b>
           </p>
         </div>
         <div class="flex items-center space-x-2">
@@ -436,13 +432,7 @@
         </div>
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Lọc theo Hãng:</label>
-          <select id="dt-filter-carrier" onchange="onFilterChange()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5">
-            <option value="">-- Tất cả các hãng --</option>
-            <option value="J&T">J&T Express</option>
-            <option value="GHN">Giao Hàng Nhanh</option>
-            <option value="Viettel Post">Viettel Post</option>
-            <option value="SPX">SPX Express</option>
-          </select>
+          <select id="dt-filter-carrier" onchange="onFilterChange()" class="w-full bg-white border border-gray-300 rounded px-2.5 py-1.5"></select>
         </div>
         <div>
           <label class="block font-semibold text-gray-700 mb-1">Ngày cập nhật (Từ - Đến):</label>
@@ -513,6 +503,36 @@
     </div>
   </div>
 
+  <!-- MODAL: QUẢN LÝ ĐƠN VỊ VẬN CHUYỂN -->
+  <div id="modal-carriers-mgr" class="hidden fixed inset-0 bg-black/50 z-[1100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-5">
+      <div class="flex items-center justify-between pb-3 border-b border-gray-200">
+        <h3 class="font-bold text-gray-800 text-sm flex items-center space-x-2">
+          <i class="fa-solid fa-boxes-packing text-purple-600"></i>
+          <span>Quản lý Đơn vị vận chuyển (ĐVVC)</span>
+        </h3>
+        <button onclick="closeModal('modal-carriers-mgr')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <div class="mt-3 space-y-3">
+        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+          <div class="font-semibold text-xs text-gray-700">Thêm ĐVVC mới:</div>
+          <div class="grid grid-cols-12 gap-2 text-xs">
+            <input type="text" id="new-carrier-name" placeholder="Tên ĐVVC (VD: Best Express)" class="col-span-5 border border-gray-300 rounded px-2 py-1">
+            <input type="text" id="new-carrier-label" placeholder="Viết tắt (VD: BEST)" class="col-span-4 border border-gray-300 rounded px-2 py-1">
+            <input type="color" id="new-carrier-color" value="#8b5cf6" class="col-span-3 border border-gray-300 rounded h-7 w-full cursor-pointer">
+          </div>
+          <button onclick="addNewCarrier()" class="w-full bg-purple-600 hover:bg-purple-700 text-white rounded py-1.5 text-xs font-semibold transition">
+            + Thêm ĐVVC
+          </button>
+        </div>
+
+        <div class="text-xs font-semibold text-gray-700 mt-2">Danh sách ĐVVC hiện tại:</div>
+        <div id="carriers-list-container" class="max-h-60 overflow-y-auto space-y-1.5 border border-gray-200 rounded-lg p-2 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: BULK DELETE CONFIRMATION -->
   <div id="modal-bulk-delete" class="hidden fixed inset-0 bg-black/50 z-[1100] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 flex flex-col max-h-[85vh]">
@@ -569,7 +589,7 @@
 
       <div class="mt-4 pt-3 border-t border-gray-200 flex justify-end space-x-2">
         <button onclick="closeModal('modal-subzone')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
-        <button onclick="saveSubZone()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold hover:bg-red-700">Lưu cụm này</button>
+        <button onclick="saveSubZone()" class="theme-bg theme-bg-hover text-white px-4 py-1.5 rounded text-xs font-semibold">Lưu cụm này</button>
       </div>
     </div>
   </div>
@@ -590,12 +610,7 @@
           </div>
           <div>
             <label class="block font-semibold text-gray-700 mb-1">Hãng (*):</label>
-            <select id="office-modal-carrier" class="w-full border border-gray-300 rounded px-3 py-1.5">
-              <option value="J&T">J&T Express (Đỏ)</option>
-              <option value="GHN">GHN (Xanh dương)</option>
-              <option value="Viettel Post">Viettel Post (Vàng)</option>
-              <option value="SPX">SPX Express (Cam)</option>
-            </select>
+            <select id="office-modal-carrier" class="w-full border border-gray-300 rounded px-3 py-1.5"></select>
           </div>
         </div>
         <div>
@@ -633,7 +648,7 @@
       </div>
       <div class="mt-6 flex justify-end space-x-2">
         <button onclick="closeModal('modal-office')" class="px-4 py-1.5 border border-gray-300 rounded text-xs text-gray-600">Hủy</button>
-        <button onclick="saveOfficeModal()" class="px-4 py-1.5 bg-red-600 text-white rounded text-xs font-semibold">Lưu lên Cloud</button>
+        <button onclick="saveOfficeModal()" class="theme-bg theme-bg-hover text-white px-4 py-1.5 rounded text-xs font-semibold">Lưu lên Cloud</button>
       </div>
     </div>
   </div>
@@ -653,7 +668,6 @@
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    // HÀM LƯU / CẬP NHẬT AN TOÀN TRÊN SUPABASE
     async function supabaseUpsertSafe(payload) {
       if (!supabaseClient) return null;
       let { error } = await supabaseClient.from('post_offices').upsert(payload, { onConflict: 'code' });
@@ -719,20 +733,125 @@
       VALID_PROVINCE_CODES.add(p.id);
     }));
 
-    const CARRIERS = {
-      'J&T': { color: '#E11B22', class: 'pin-jt', cssKey: 'jt', label: 'J&T' },
-      'GHN': { color: '#0052CC', class: 'pin-ghn', cssKey: 'ghn', label: 'GHN' },
-      'Viettel Post': { color: '#F8B105', class: 'pin-viettel', cssKey: 'viettel', label: 'VTP' },
-      'SPX': { color: '#F05326', class: 'pin-spx', cssKey: 'spx', label: 'SPX' }
+    // CẤU HÌNH ĐVVC MẶC ĐỊNH VÀ TỰ CHỌN (LƯU LOCALSTORAGE)
+    const DEFAULT_CARRIERS = {
+      'J&T': { color: '#E11B22', label: 'J&T' },
+      'GHN': { color: '#0052CC', label: 'GHN' },
+      'Viettel Post': { color: '#F8B105', label: 'VTP' },
+      'SPX': { color: '#F05326', label: 'SPX' }
     };
 
+    let CARRIERS = JSON.parse(localStorage.getItem('saved_custom_carriers')) || DEFAULT_CARRIERS;
+
+    // CẤU HÌNH MÀU CHỦ ĐỀ
+    const THEME_COLORS = [
+      { name: 'Đỏ', main: '#E11B22', hover: '#b91218', bgLight: '#fef2f2' },
+      { name: 'Xanh dương', main: '#2563eb', hover: '#1d4ed8', bgLight: '#eff6ff' },
+      { name: 'Xanh lá', main: '#16a34a', hover: '#15803d', bgLight: '#f0fdf4' },
+      { name: 'Tím', main: '#9333ea', hover: '#7e22ce', bgLight: '#faf5ff' },
+      { name: 'Đen', main: '#18181b', hover: '#09090b', bgLight: '#f4f4f5' }
+    ];
+
+    let currentTheme = JSON.parse(localStorage.getItem('saved_theme_color')) || THEME_COLORS[0];
+
+    function applyTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('saved_theme_color', JSON.stringify(theme));
+      document.documentElement.style.setProperty('--theme-color', theme.main);
+      document.documentElement.style.setProperty('--theme-hover', theme.hover);
+      document.documentElement.style.setProperty('--theme-bg-light', theme.bgLight);
+    }
+
+    function toggleThemePicker() {
+      document.getElementById('theme-picker-panel').classList.toggle('hidden');
+    }
+
+    function renderThemePicker() {
+      const container = document.getElementById('theme-color-options');
+      container.innerHTML = THEME_COLORS.map(t => `
+        <button onclick="applyTheme(${JSON.stringify(t).replace(/"/g, '&quot;')}); toggleThemePicker();" 
+                class="w-6 h-6 rounded-full border-2 border-white shadow hover:scale-110 transition" 
+                style="background-color: ${t.main}" title="${t.name}"></button>
+      `).join('');
+    }
+
     function detectCarrier(name, desc, rawCarrier) {
+      if (rawCarrier && CARRIERS[rawCarrier]) return rawCarrier;
       const full = (String(rawCarrier) + ' ' + String(name) + ' ' + String(desc)).toLowerCase();
-      if (full.includes('ghn') || full.includes('giao hàng nhanh') || full.includes('giaohangnhanh')) return 'GHN';
-      if (full.includes('viettel') || full.includes('vtp') || full.includes('viettelpost')) return 'Viettel Post';
+      
+      for (let cName of Object.keys(CARRIERS)) {
+        if (full.includes(cName.toLowerCase())) return cName;
+      }
+      if (full.includes('ghn') || full.includes('giao hàng nhanh')) return 'GHN';
+      if (full.includes('viettel') || full.includes('vtp')) return 'Viettel Post';
       if (full.includes('spx') || full.includes('shopee')) return 'SPX';
-      if (full.includes('j&t') || full.includes('jnt') || full.includes('jt') || full.includes('ttnk') || full.includes('mkd')) return 'J&T';
-      return rawCarrier || 'J&T';
+      if (full.includes('j&t') || full.includes('jnt') || full.includes('jt')) return 'J&T';
+      return Object.keys(CARRIERS)[0] || 'J&T';
+    }
+
+    function saveCarriersConfig() {
+      localStorage.setItem('saved_custom_carriers', JSON.stringify(CARRIERS));
+      reinitCarrierClusterGroups();
+      renderCarrierUI();
+      renderMarkers();
+      renderStats();
+    }
+
+    function addNewCarrier() {
+      const name = document.getElementById('new-carrier-name').value.trim();
+      const label = document.getElementById('new-carrier-label').value.trim() || name;
+      const color = document.getElementById('new-carrier-color').value;
+
+      if (!name) { alert("Vui lòng nhập tên ĐVVC!"); return; }
+      if (CARRIERS[name]) { alert("ĐVVC này đã tồn tại!"); return; }
+
+      CARRIERS[name] = { color: color, label: label };
+      visibleCarriers.add(name);
+      
+      document.getElementById('new-carrier-name').value = '';
+      document.getElementById('new-carrier-label').value = '';
+
+      saveCarriersConfig();
+      alert(`Đã thêm ĐVVC [${name}] thành công!`);
+    }
+
+    function removeCarrier(cName) {
+      if (confirm(`Bạn có chắc muốn xóa hãng [${cName}] khỏi danh sách chú giải?`)) {
+        delete CARRIERS[cName];
+        visibleCarriers.delete(cName);
+        saveCarriersConfig();
+      }
+    }
+
+    function renderCarrierUI() {
+      // 1. Quản lý ĐVVC Modal
+      const containerMgr = document.getElementById('carriers-list-container');
+      containerMgr.innerHTML = Object.entries(CARRIERS).map(([cName, conf]) => `
+        <div class="flex items-center justify-between bg-gray-50 p-2 rounded border border-gray-100">
+          <div class="flex items-center space-x-2">
+            <span class="w-3.5 h-3.5 rounded-full" style="background-color: ${conf.color}"></span>
+            <span class="font-bold text-gray-800">${cName} (${conf.label})</span>
+          </div>
+          <button onclick="removeCarrier('${cName}')" class="text-red-500 hover:text-red-700 p-1" title="Xóa hãng này">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          </button>
+        </div>
+      `).join('');
+
+      // 2. Chú giải bưu cục (Góc trái bản đồ)
+      const legendList = document.getElementById('legend-carriers-list');
+      legendList.innerHTML = Object.entries(CARRIERS).map(([cName, conf]) => `
+        <label class="flex items-center space-x-2 cursor-pointer select-none">
+          <input type="checkbox" ${visibleCarriers.has(cName) ? 'checked' : ''} onchange="toggleCarrier('${cName}', this.checked)" class="rounded theme-text focus:ring-0">
+          <span class="w-3.5 h-3.5 rounded-full inline-block shrink-0" style="background-color: ${conf.color}"></span>
+          <span class="font-bold text-gray-800">${cName}</span>
+        </label>
+      `).join('');
+
+      // 3. Dropdown thêm mới / lọc bưu cục
+      const carrierOptions = Object.keys(CARRIERS).map(c => `<option value="${c}">${c}</option>`).join('');
+      document.getElementById('office-modal-carrier').innerHTML = carrierOptions;
+      document.getElementById('dt-filter-carrier').innerHTML = '<option value="">-- Tất cả các hãng --</option>' + carrierOptions;
     }
 
     function formatDateTimeVN(isoString) {
@@ -751,7 +870,7 @@
     let selectedProvinceIds = new Set();
     let activeSubZone = null;
     let customSubZones = JSON.parse(localStorage.getItem('saved_sub_zones')) || [];
-    let visibleCarriers = new Set(['J&T', 'GHN', 'Viettel Post', 'SPX']);
+    let visibleCarriers = new Set(Object.keys(CARRIERS));
     let map, highlightCirclesGroup;
     let isSidebarCollapsed = false;
     let showHighlightCircles = true;
@@ -777,7 +896,6 @@
     let dtCurrentPage = 1;
     const dtPageSize = 50;
 
-    // --- 2. TẢI DỮ LIỆU TỪ SUPABASE (DÙNG CHÍNH XÁC KHÓA CHÍNH ID CỦA DATABASE) ---
     async function loadDataFromCloud() {
       if (!supabaseClient) return;
 
@@ -788,7 +906,7 @@
         postOfficesData = (data || []).map(row => {
           const determinedCarrier = detectCarrier(row.name, row.address, row.carrier);
           return {
-            id: row.id, // GIỮ NGUYÊN ID CHÍNH XÁC TRONG DATABASE
+            id: row.id,
             code: row.code,
             name: row.name,
             carrier: determinedCarrier,
@@ -825,8 +943,41 @@
       else el.innerText = 'Chưa ghi nhận';
     }
 
-    // --- 3. KHỞI TẠO BẢN ĐỒ ---
+    function reinitCarrierClusterGroups() {
+      Object.keys(carrierClusterGroups).forEach(k => {
+        map.removeLayer(carrierClusterGroups[k]);
+      });
+      carrierClusterGroups = {};
+
+      Object.keys(CARRIERS).forEach(cKey => {
+        const conf = CARRIERS[cKey];
+        carrierClusterGroups[cKey] = L.markerClusterGroup({
+          disableClusteringAtZoom: 13,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          maxClusterRadius: 40,
+          iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            return L.divIcon({
+              html: `<div class="carrier-cluster-badge" style="background-color:${conf.color}">
+                       <span>${conf.label} · ${count}</span>
+                     </div>`,
+              className: 'custom-carrier-cluster-icon',
+              iconSize: [66, 26],
+              iconAnchor: [33, 13]
+            });
+          }
+        });
+        if (visibleCarriers.has(cKey)) {
+          map.addLayer(carrierClusterGroups[cKey]);
+        }
+      });
+    }
+
     function initMap() {
+      applyTheme(currentTheme);
+      renderThemePicker();
+
       map = L.map('map', { zoomControl: true }).setView([21.3, 105.5], 8);
 
       L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
@@ -855,36 +1006,6 @@
       setTimeout(() => { map.invalidateSize(); updateMapZoomClass(); }, 300);
       window.addEventListener('resize', () => { map.invalidateSize(); });
 
-      const carrierOffsets = {
-        'J&T': [0, 0],
-        'GHN': [14, -10],
-        'Viettel Post': [-14, 10],
-        'SPX': [14, 10]
-      };
-
-      Object.keys(CARRIERS).forEach(cKey => {
-        const conf = CARRIERS[cKey];
-        const offset = carrierOffsets[cKey];
-        carrierClusterGroups[cKey] = L.markerClusterGroup({
-          disableClusteringAtZoom: 13,
-          spiderfyOnMaxZoom: true,
-          showCoverageOnHover: false,
-          maxClusterRadius: 40,
-          iconCreateFunction: function(cluster) {
-            const count = cluster.getChildCount();
-            return L.divIcon({
-              html: `<div class="carrier-cluster-badge cluster-${conf.cssKey}">
-                       <span>${conf.label} · ${count}</span>
-                     </div>`,
-              className: 'custom-carrier-cluster-icon',
-              iconSize: [66, 26],
-              iconAnchor: [33 - offset[0], 13 - offset[1]]
-            });
-          }
-        });
-        map.addLayer(carrierClusterGroups[cKey]);
-      });
-
       highlightCirclesGroup = L.featureGroup().addTo(map);
 
       const provOptions = ALL_PROVINCES.map(p => `<option value="${p.id}">${p.name} (${p.id})</option>`).join('');
@@ -892,6 +1013,8 @@
       document.getElementById('subzone-province').innerHTML = provOptions;
       document.getElementById('dt-filter-province').innerHTML = '<option value="">-- Tất cả 25 tỉnh --</option>' + provOptions;
 
+      renderCarrierUI();
+      reinitCarrierClusterGroups();
       applyWidgetState();
       syncLabelSettingsToUI();
       renderAccordion();
@@ -899,7 +1022,6 @@
       loadDataFromCloud();
     }
 
-    // --- 4. TÙY CHỌN NHÃN BƯU CỤC ---
     function toggleLabelSettingsPanel() {
       document.getElementById('label-settings-panel').classList.toggle('hidden');
     }
@@ -938,7 +1060,6 @@
       renderMarkers();
     }
 
-    // --- 5. ẨN/HIỆN WIDGET & VÒNG KHOANH TRÒN ---
     function applyWidgetState() {
       const statsPanel = document.getElementById('stats-panel');
       const legendPanel = document.getElementById('legend-panel');
@@ -1009,18 +1130,17 @@
       if (tab === 'provinces') {
         document.getElementById('sidebar-panel-provinces').classList.remove('hidden');
         document.getElementById('sidebar-panel-subzones').classList.add('hidden');
-        document.getElementById('tab-btn-prov').className = 'flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white font-bold';
+        document.getElementById('tab-btn-prov').className = 'flex-1 py-2.5 text-center theme-text border-b-2 theme-border bg-white font-bold';
         document.getElementById('tab-btn-subzones').className = 'flex-1 py-2.5 text-center text-gray-600 hover:text-red-600 transition flex items-center justify-center space-x-1 font-bold';
       } else {
         document.getElementById('sidebar-panel-provinces').classList.add('hidden');
         document.getElementById('sidebar-panel-subzones').classList.remove('hidden');
-        document.getElementById('tab-btn-subzones').className = 'flex-1 py-2.5 text-center text-red-600 border-b-2 border-red-600 bg-white font-bold flex items-center justify-center space-x-1';
+        document.getElementById('tab-btn-subzones').className = 'flex-1 py-2.5 text-center theme-text border-b-2 theme-border bg-white font-bold flex items-center justify-center space-x-1';
         document.getElementById('tab-btn-prov').className = 'flex-1 py-2.5 text-center text-gray-600 hover:text-red-600 transition font-bold';
         renderSubZonesList();
       }
     }
 
-    // --- 6. RENDER MARKERS & THỐNG KÊ ---
     function renderMarkers() {
       Object.keys(carrierClusterGroups).forEach(k => carrierClusterGroups[k].clearLayers());
 
@@ -1034,7 +1154,7 @@
       pointsToDisplay.forEach(po => {
         if (!po.lat || !po.lng) return;
 
-        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+        const conf = CARRIERS[po.carrier] || { color: '#E11B22', label: po.carrier };
 
         let labelParts = [];
         if (labelConfig.showName) labelParts.push(po.name || 'Bưu cục');
@@ -1053,7 +1173,7 @@
 
         const iconHtml = `
           <div class="relative flex items-center">
-            <div class="custom-pin ${conf.class}">${conf.label}</div>
+            <div class="custom-pin" style="background-color: ${conf.color}">${conf.label}</div>
             ${singleLineText ? `
               <div class="office-sublabel-tag" style="font-size: ${labelConfig.fontSize}px;">
                 <span class="truncate max-w-[210px]" title="${po.name} | ${po.code} | ${po.dailyOrders ? po.dailyOrders.toLocaleString() : '—'} đơn">${singleLineText}</span>
@@ -1109,7 +1229,7 @@
       const isDaily = document.getElementById('check-daily').checked;
       document.getElementById('th-orders').innerText = isDaily ? 'Đơn/ngày' : 'Tổng đơn kỳ';
 
-      const carrierNames = ['J&T', 'GHN', 'Viettel Post', 'SPX'];
+      const carrierNames = Object.keys(CARRIERS);
 
       tbody.innerHTML = carrierNames.map(cName => {
         const conf = CARRIERS[cName];
@@ -1160,7 +1280,7 @@
     function showOfficeDetail(po) {
       const card = document.getElementById('office-detail-card');
       const badge = document.getElementById('card-badge');
-      const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+      const conf = CARRIERS[po.carrier] || { color: '#E11B22', label: po.carrier };
 
       badge.style.backgroundColor = conf.color;
       badge.innerText = conf.label;
@@ -1187,7 +1307,6 @@
       document.getElementById('office-detail-card').classList.add('hidden');
     }
 
-    // --- 7. BỘ LỌC ĐA ĐIỀU KIỆN ---
     function onFilterChange() {
       selectedOfficeIds.clear();
       updateSelectionUI();
@@ -1263,7 +1382,7 @@
       pageCb.checked = allPageSelected;
 
       tbody.innerHTML = pageRows.map(po => {
-        const conf = CARRIERS[po.carrier] || CARRIERS['J&T'];
+        const conf = CARRIERS[po.carrier] || { color: '#E11B22' };
         const isChecked = selectedOfficeIds.has(po.id);
         const gmapsLink = (po.lat && po.lng) 
           ? `<a href="https://www.google.com/maps/search/?api=1&query=${po.lat},${po.lng}" target="_blank" class="text-blue-600 font-bold hover:underline">Xem Maps &rarr;</a>` 
@@ -1304,7 +1423,6 @@
       renderDataTableRows();
     }
 
-    // --- 8. LOGIC CHỌN VÀ XÓA HÀNG LOẠT ---
     function toggleSelectOfficeRow(id, isChecked) {
       if (isChecked) selectedOfficeIds.add(id);
       else selectedOfficeIds.delete(id);
@@ -1395,7 +1513,7 @@
 
         selectedOfficeIds.clear();
         updateSelectionUI();
-        await loadDataFromCloud(); // RE-FETCH 100% TỪ MÁY CHỦ
+        await loadDataFromCloud();
         closeModal('modal-bulk-delete');
         closeOfficeCard();
 
@@ -1405,10 +1523,9 @@
       }
     }
 
-    // --- 9. SỬA CHÍNH XÁC LOGIC UPDATE & INSERT (GIẢI QUYẾT LỖI NHÂN ĐÔI) ---
     function openNewOfficeModal() {
       document.getElementById('modal-office-title').innerText = "Thêm mới bưu cục";
-      document.getElementById('editing-office-id').value = ''; // RỖNG = CHẾ ĐỘ THÊM MỚI
+      document.getElementById('editing-office-id').value = '';
       document.getElementById('office-modal-code').value = '';
       document.getElementById('office-modal-name').value = '';
       document.getElementById('office-modal-lat').value = '';
@@ -1424,7 +1541,7 @@
       if (!po) return;
 
       document.getElementById('modal-office-title').innerText = `Chỉnh sửa bưu cục: ${po.code}`;
-      document.getElementById('editing-office-id').value = po.id; // LƯU ĐÚNG ID GỐC CỦA BẢN GHI
+      document.getElementById('editing-office-id').value = po.id;
       document.getElementById('office-modal-code').value = po.code;
       document.getElementById('office-modal-name').value = po.name;
       document.getElementById('office-modal-carrier').value = po.carrier;
@@ -1460,10 +1577,6 @@
 
       try {
         if (editId) {
-          // ==========================================
-          // 1. CHẾ ĐỘ UPDATE: CẬP NHẬT ĐÚNG VÀO ID GỐC
-          // TUYỆT ĐỐI KHÔNG TẠO RECORD MỚI
-          // ==========================================
           const updatePayload = {
             code: code,
             name: name,
@@ -1492,9 +1605,6 @@
             }
           }
         } else {
-          // ==========================================
-          // 2. CHẾ ĐỘ INSERT: THÊM MỚI BƯU CỤC
-          // ==========================================
           const insertPayload = {
             id: `${carrier}_${code}`,
             code: code,
@@ -1512,7 +1622,6 @@
           await supabaseUpsertSafe(insertPayload);
         }
 
-        // TẢI LẠI TOÀN BỘ DỮ LIỆU THỰC TẾ TỪ CSDL ĐỂ ĐỒNG BỘ 100%
         await loadDataFromCloud();
         alert(editId ? "Đã cập nhật bưu cục thành công!" : "Đã thêm mới bưu cục thành công!");
         closeModal('modal-office');
@@ -1529,13 +1638,12 @@
       if (confirm(`Bạn có chắc muốn xóa [${po.carrier}] ${po.code} - ${po.name}?`)) {
         try {
           if (supabaseClient) {
-            // XÓA CHÍNH XÁC THEO UNIQUE ID
             const { error } = await supabaseClient.from('post_offices').delete().eq('id', id);
             if (error) throw error;
           }
           selectedOfficeIds.delete(id);
           updateSelectionUI();
-          await loadDataFromCloud(); // RE-FETCH TOÀN BỘ TỪ MÁY CHỦ
+          await loadDataFromCloud();
           closeOfficeCard();
           alert("Đã xóa bưu cục thành công!");
         } catch (err) {
@@ -1561,7 +1669,6 @@
       }
     }
 
-    // --- 10. XỬ LÝ VÙNG NHỎ, MODAL & CHỌN TỈNH ---
     function openCreateSubZoneModal() {
       document.getElementById('subzone-name').value = '';
       const currentProv = Array.from(selectedProvinceIds)[0] || 'HNI';
@@ -1582,7 +1689,7 @@
 
       container.innerHTML = offices.map(po => `
         <label class="flex items-center space-x-2 p-1.5 hover:bg-white rounded cursor-pointer border border-transparent hover:border-gray-200">
-          <input type="checkbox" value="${po.id}" class="subzone-office-cb rounded text-red-600 focus:ring-0" onchange="updateSubzoneSelectedCount()">
+          <input type="checkbox" value="${po.id}" class="subzone-office-cb rounded theme-text focus:ring-0" onchange="updateSubzoneSelectedCount()">
           <span class="font-bold text-[11px] text-gray-800">[${po.carrier}] ${po.name}</span>
           <span class="text-gray-400 text-[10px]">(${po.code})</span>
         </label>
@@ -1636,7 +1743,7 @@
           <div class="border rounded-lg p-2.5 transition ${isActive ? 'bg-red-50 border-red-500 shadow-sm' : 'bg-gray-50 border-gray-200 hover:bg-white'}">
             <div class="flex items-start justify-between">
               <div onclick="selectSubZone('${sz.id}')" class="cursor-pointer flex-1">
-                <div class="font-bold text-xs ${isActive ? 'text-red-600' : 'text-gray-800'} flex items-center space-x-1.5">
+                <div class="font-bold text-xs ${isActive ? 'theme-text' : 'text-gray-800'} flex items-center space-x-1.5">
                   <i class="fa-solid fa-circle-dot text-[10px]"></i>
                   <span>${sz.name}</span>
                 </div>
@@ -1674,9 +1781,9 @@
 
         const circle = L.circle([avgLat, avgLng], {
           radius: maxDist + 1200,
-          color: '#E11B22',
+          color: currentTheme.main,
           weight: 2.5,
-          fillColor: '#FF4D4F',
+          fillColor: currentTheme.main,
           fillOpacity: 0.16,
           dashArray: '5, 5'
         });
@@ -1722,13 +1829,13 @@
           <div class="bg-gray-50/90 px-3.5 py-2.5 flex items-center justify-between hover:bg-gray-100 transition">
             <div class="flex items-center space-x-2">
               <input type="checkbox" onchange="toggleSelectRegion('${regionName}', this.checked)" ${isAllRegionSelected ? 'checked' : ''} 
-                     class="rounded text-red-600 focus:ring-0 cursor-pointer" title="Chọn toàn bộ ${regionName}">
+                     class="rounded theme-text focus:ring-0 cursor-pointer" title="Chọn toàn bộ ${regionName}">
               <span onclick="toggleAccordionGroup('${regionName}')" class="text-xs font-bold text-gray-800 uppercase tracking-wider cursor-pointer select-none">
                 ${regionName} (${filtered.length})
               </span>
             </div>
             <div class="flex items-center space-x-2">
-              <button onclick="selectOnlyRegion('${regionName}')" class="text-[10px] bg-red-100 hover:bg-red-200 text-red-700 px-2 py-0.5 rounded font-semibold transition" title="Xem tổng ${regionName}">
+              <button onclick="selectOnlyRegion('${regionName}')" class="text-[10px] bg-red-100 hover:bg-red-200 theme-text px-2 py-0.5 rounded font-semibold transition" title="Xem tổng ${regionName}">
                 Xem cả vùng
               </button>
               <i onclick="toggleAccordionGroup('${regionName}')" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transform transition-transform cursor-pointer" id="arrow-${regionName}"></i>
@@ -1738,10 +1845,10 @@
             ${filtered.map(p => {
               const isChecked = selectedProvinceIds.has(p.id);
               return `
-                <div class="px-4 py-2 flex items-center justify-between hover:bg-red-50/40 transition text-xs ${isChecked ? 'bg-red-50/70 font-semibold text-red-600' : 'text-gray-700'}">
+                <div class="px-4 py-2 flex items-center justify-between hover:bg-red-50/40 transition text-xs ${isChecked ? 'bg-red-50/70 font-semibold theme-text' : 'text-gray-700'}">
                   <label class="flex items-center space-x-2.5 flex-1 cursor-pointer select-none">
                     <input type="checkbox" onchange="toggleSelectProvince('${p.id}', this.checked)" ${isChecked ? 'checked' : ''} 
-                           class="rounded text-red-600 focus:ring-0">
+                           class="rounded theme-text focus:ring-0">
                     <span class="text-xs">${p.name}</span>
                   </label>
                   <button onclick="selectOnlyProvince('${p.id}')" class="text-[10px] text-gray-400 hover:text-red-600 px-1.5 py-0.5">
@@ -1844,9 +1951,9 @@
           if (prov && prov.center) {
             const circle = L.circle(prov.center, {
               radius: prov.radius || 25000,
-              color: '#E11B22',
+              color: currentTheme.main,
               weight: 2.5,
-              fillColor: '#FF4D4F',
+              fillColor: currentTheme.main,
               fillOpacity: 0.16,
               dashArray: '5, 5'
             });
@@ -1872,13 +1979,13 @@
       if (tab === 'map') {
         document.getElementById('view-map').classList.remove('hidden');
         document.getElementById('view-data').classList.add('hidden');
-        document.getElementById('btn-tab-map').className = "bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
+        document.getElementById('btn-tab-map').className = "theme-bg text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
         document.getElementById('btn-tab-data').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
         setTimeout(() => { map.invalidateSize(); }, 200);
       } else {
         document.getElementById('view-map').classList.add('hidden');
         document.getElementById('view-data').classList.remove('hidden');
-        document.getElementById('btn-tab-data').className = "bg-red-600 text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
+        document.getElementById('btn-tab-data').className = "theme-bg text-white px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5 shadow-sm";
         document.getElementById('btn-tab-map').className = "bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg font-medium text-xs md:text-sm flex items-center space-x-1.5";
         renderDataTable();
       }
@@ -1902,9 +2009,7 @@
     function downloadTemplateExcel() {
       const sampleRows = [
         { "Mã bưu cục": "JT-HY01", "Tên bưu cục": "Bưu cục Mỹ Hào", "Hãng": "J&T", "Mã tỉnh": "HYN", "Vĩ độ": 20.685, "Kinh độ": 106.055, "Địa chỉ": "TX Mỹ Hào, Hưng Yên", "Đơn/ngày": 1200, "Số xe": 2 },
-        { "Mã bưu cục": "GHN-HN02", "Tên bưu cục": "Bưu cục Hoàn Kiếm", "Hãng": "GHN", "Mã tỉnh": "HNI", "Vĩ độ": 21.028, "Kinh độ": 105.854, "Địa chỉ": "Quận Hoàn Kiếm, Hà Nội", "Đơn/ngày": 3500, "Số xe": 4 },
-        { "Mã bưu cục": "VT-SLA01", "Tên bưu cục": "Bưu cục Mộc Châu", "Hãng": "Viettel Post", "Mã tỉnh": "SLA", "Vĩ độ": 20.845, "Kinh độ": 104.645, "Địa chỉ": "TT Mộc Châu, Sơn La", "Đơn/ngày": 800, "Số xe": 1 },
-        { "Mã bưu cục": "SPX-QN01", "Tên bưu cục": "Kho SPX Bãi Cháy", "Hãng": "SPX", "Mã tỉnh": "QNH", "Vĩ độ": 20.958, "Kinh độ": 107.039, "Địa chỉ": "Bãi Cháy, Quảng Ninh", "Đơn/ngày": 2100, "Số xe": 2 }
+        { "Mã bưu cục": "GHN-HN02", "Tên bưu cục": "Bưu cục Hoàn Kiếm", "Hãng": "GHN", "Mã tỉnh": "HNI", "Vĩ độ": 21.028, "Kinh độ": 105.854, "Địa chỉ": "Quận Hoàn Kiếm, Hà Nội", "Đơn/ngày": 3500, "Số xe": 4 }
       ];
       const ws = XLSX.utils.json_to_sheet(sampleRows);
       const wb = XLSX.utils.book_new();
@@ -1912,7 +2017,6 @@
       XLSX.writeFile(wb, "Mau_Nhap_Buu_Cuc_Mien_Bac.xlsx");
     }
 
-    // --- 11. NHẬP FILE AN TOÀN TRÁNH TRÙNG LẶP ---
     function handleUniversalFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
