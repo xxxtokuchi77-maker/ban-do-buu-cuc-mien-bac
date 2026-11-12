@@ -193,7 +193,7 @@
           </div>
           <div>
             <div class="flex items-center justify-between mb-1">
-              <label class="font-semibold text-gray-700">C cỡ chữ nhãn:</label>
+              <label class="font-semibold text-gray-700">Cỡ chữ nhãn:</label>
               <span id="cfg-font-size-text" class="font-bold theme-text">11px</span>
             </div>
             <input type="range" id="cfg-font-size" min="10" max="14" step="1" value="11" oninput="updateLabelFontSize(this.value)" class="w-full">
@@ -664,7 +664,7 @@
     const SUPABASE_ANON_KEY = "sb_publishable_OY6DzKcMi0RABPhB6C7R3A_eawc_KHx";
 
     let supabaseClient = null;
-    if (SUPABASE_ANON_KEY) {
+    if (SUPABASE_ANON_KEY && typeof supabase !== 'undefined') {
       supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
@@ -733,19 +733,19 @@
       VALID_PROVINCE_CODES.add(p.id);
     }));
 
-    // DANH SÁCH 8 HÃNG ĐÃ ĐƯỢC TÍCH HỢP TRỰC TIẾP VÀO CODE
+    // DANH SÁCH 6 HÃNG MẶC ĐỊNH (ĐÃ XÓA NINJA VAN VÀ VNPOST)
     const BUILTIN_CARRIERS = {
       'J&T': { color: '#E11B22', label: 'J&T' },
       'GHN': { color: '#0052CC', label: 'GHN' },
       'Viettel Post': { color: '#F8B105', label: 'VTP' },
       'SPX': { color: '#F05326', label: 'SPX' },
       'Best Express': { color: '#8B5CF6', label: 'BEST' },
-      'Giao Hàng Tiết Kiệm': { color: '#10B981', label: 'GHTK' },
-      'Ninja Van': { color: '#D97706', label: 'NINJA' },
-      'VNPost': { color: '#0284C7', label: 'VNPOST' }
+      'Giao Hàng Tiết Kiệm': { color: '#10B981', label: 'GHTK' }
     };
 
     let savedCustom = JSON.parse(localStorage.getItem('saved_custom_carriers')) || {};
+    delete savedCustom['Ninja Van'];
+    delete savedCustom['VNPost'];
     let CARRIERS = { ...BUILTIN_CARRIERS, ...savedCustom };
 
     const THEME_COLORS = [
@@ -791,8 +791,6 @@
       if (full.includes('spx') || full.includes('shopee')) return 'SPX';
       if (full.includes('best')) return 'Best Express';
       if (full.includes('ghtk') || full.includes('tiết kiệm')) return 'Giao Hàng Tiết Kiệm';
-      if (full.includes('ninja')) return 'Ninja Van';
-      if (full.includes('vnpost') || full.includes('bưu điện')) return 'VNPost';
       if (full.includes('j&t') || full.includes('jnt') || full.includes('jt')) return 'J&T';
       return Object.keys(CARRIERS)[0] || 'J&T';
     }
@@ -1083,7 +1081,7 @@
         legendPanel.classList.remove('hidden');
         btnLegend.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
       } else {
-        legendPanel.classList.add('hidden');
+        legendPanel.classList.remove('hidden');
         btnLegend.classList.remove('bg-green-50', 'text-green-700', 'border-green-300');
       }
     }
@@ -2012,6 +2010,10 @@
     }
 
     function downloadTemplateExcel() {
+      if (typeof XLSX === 'undefined') {
+        alert("Lỗi: Thư viện Excel chưa tải xong. Vui lòng kiểm tra mạng và tải lại trang!");
+        return;
+      }
       const sampleRows = [
         { "Mã bưu cục": "JT-HY01", "Tên bưu cục": "Bưu cục Mỹ Hào", "Hãng": "J&T", "Mã tỉnh": "HYN", "Vĩ độ": 20.685, "Kinh độ": 106.055, "Địa chỉ": "TX Mỹ Hào, Hưng Yên", "Đơn/ngày": 1200, "Số xe": 2 },
         { "Mã bưu cục": "GHN-HN02", "Tên bưu cục": "Bưu cục Hoàn Kiếm", "Hãng": "GHN", "Mã tỉnh": "HNI", "Vĩ độ": 21.028, "Kinh độ": 105.854, "Địa chỉ": "Quận Hoàn Kiếm, Hà Nội", "Đơn/ngày": 3500, "Số xe": 4 }
@@ -2031,12 +2033,17 @@
       if (fileName.endsWith('.kml')) {
         const reader = new FileReader();
         reader.onload = function(e) { parseAndImportKML(e.target.result); };
+        reader.onerror = function() { alert("Lỗi đọc file KML!"); };
         reader.readAsText(file);
         event.target.value = '';
         return;
       }
 
       if (fileName.endsWith('.csv') || fileName.endsWith('.txt') || fileName.endsWith('.tsv')) {
+        if (typeof Papa === 'undefined') {
+          alert("Lỗi: Thư viện đọc CSV chưa tải xong. Hãy tải lại trang!");
+          return;
+        }
         const reader = new FileReader();
         reader.onload = function(e) {
           Papa.parse(e.target.result, {
@@ -2044,11 +2051,18 @@
             skipEmptyLines: true,
             complete: function(results) {
               if (results.data && results.data.length > 0) processImportedRows(results.data);
-              else alert("File không có dữ liệu!");
+              else alert("File CSV không có dữ liệu!");
             }
           });
         };
+        reader.onerror = function() { alert("Lỗi đọc file CSV!"); };
         reader.readAsText(file, "UTF-8");
+        event.target.value = '';
+        return;
+      }
+
+      if (typeof XLSX === 'undefined') {
+        alert("Lỗi: Thư viện đọc Excel chưa tải xong. Vui lòng nhấn Ctrl + Shift + R để tải lại trang!");
         event.target.value = '';
         return;
       }
@@ -2068,159 +2082,186 @@
             }
           }
           if (foundRows.length > 0) processImportedRows(foundRows);
-          else alert("File Excel không có dữ liệu!");
+          else alert("File Excel trống hoặc không đọc được dòng dữ liệu nào!");
         } catch (err) {
-          alert("Lỗi đọc file: " + err.message);
+          alert("Lỗi đọc file Excel: " + err.message);
         }
+        event.target.value = '';
+      };
+      reader.onerror = function() {
+        alert("Không thể mở file từ máy tính!");
         event.target.value = '';
       };
       reader.readAsArrayBuffer(file);
     }
 
     async function processImportedRows(rows) {
-      let accepted = 0;
-      let rejectedOutOfBounds = 0;
-      let uploadBatch = [];
-      const batchTimestamp = new Date().toISOString();
-
-      rows.forEach((row, idx) => {
-        const getField = (candidates) => {
-          for (let k of Object.keys(row)) {
-            const cleanK = k.trim().toLowerCase();
-            for (let c of candidates) {
-              if (cleanK === c.toLowerCase() || cleanK.includes(c.toLowerCase())) return row[k];
-            }
-          }
-          return '';
-        };
-
-        const code = String(getField(['Mã bưu cục', 'mã ttnk', 'code', 'mã']) || `BC-${idx+1}`).trim();
-        const name = String(getField(['Tên bưu cục', 'name', 'tên']) || code).trim();
-        const rawCarrier = String(getField(['Hãng', 'carrier'])).trim();
-        const carrier = detectCarrier(name, '', rawCarrier);
-
-        let rawProv = String(getField(['Mã tỉnh', 'province_id', 'tỉnh']) || '').trim().toUpperCase();
-
-        if (!rawProv) {
-          const m = name.match(/\(([A-Za-zĐđ]+)\)/);
-          if (m && PROV_MAPPING[m[1].toUpperCase()]) rawProv = PROV_MAPPING[m[1].toUpperCase()];
-        } else if (PROV_MAPPING[rawProv]) {
-          rawProv = PROV_MAPPING[rawProv];
-        }
-
-        const latVal = parseFloat(getField(['Vĩ độ', 'lat', 'latitude']));
-        const lngVal = parseFloat(getField(['Kinh độ', 'lng', 'longitude']));
-        const address = String(getField(['Địa chỉ', 'address']) || '').trim();
-        const ordersVal = parseFloat(String(getField(['Đơn/ngày', 'sản lượng', 'orders'])).replace(/,/g, ''));
-        const trucksVal = parseInt(getField(['Số xe', 'trucks']));
-
-        if (!VALID_PROVINCE_CODES.has(rawProv)) {
-          rejectedOutOfBounds++;
+      try {
+        if (!rows || rows.length === 0) {
+          alert("File không có dòng dữ liệu nào!");
           return;
         }
 
-        const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
+        let accepted = 0;
+        let rejectedOutOfBounds = 0;
+        let uploadBatch = [];
+        const batchTimestamp = new Date().toISOString();
 
-        uploadBatch.push({
-          id: `${carrier}_${code}`,
-          code: code,
-          name: name,
-          carrier: carrier,
-          province_id: rawProv,
-          lat: hasCoord ? latVal : null,
-          lng: hasCoord ? lngVal : null,
-          address: address,
-          daily_orders: !isNaN(ordersVal) ? ordersVal : null,
-          trucks: !isNaN(trucksVal) ? trucksVal : null,
-          updated_at: batchTimestamp
-        });
-        accepted++;
-      });
+        rows.forEach((row, idx) => {
+          const getField = (candidates) => {
+            for (let k of Object.keys(row)) {
+              const cleanK = k.trim().toLowerCase();
+              for (let c of candidates) {
+                if (cleanK === c.toLowerCase() || cleanK.includes(c.toLowerCase())) return row[k];
+              }
+            }
+            return '';
+          };
 
-      if (supabaseClient && uploadBatch.length > 0) {
-        for (let i = 0; i < uploadBatch.length; i += 500) {
-          const chunk = uploadBatch.slice(i, i + 500);
-          await supabaseUpsertSafe(chunk);
-        }
-      }
+          const code = String(getField(['Mã bưu cục', 'mã ttnk', 'code', 'mã']) || `BC-${idx+1}`).trim();
+          const name = String(getField(['Tên bưu cục', 'name', 'tên']) || code).trim();
+          const rawCarrier = String(getField(['Hãng', 'carrier'])).trim();
+          const carrier = detectCarrier(name, '', rawCarrier);
 
-      await loadDataFromCloud();
-      alert(`ĐỒNG BỘ CLOUD HOÀN TẤT!\n- Đã cập nhật thành công: ${accepted} bưu cục lên máy chủ Supabase.\n- Bị loại: ${rejectedOutOfBounds}`);
-    }
+          let rawProv = String(getField(['Mã tỉnh', 'province_id', 'tỉnh']) || '').trim().toUpperCase();
 
-    async function parseAndImportKML(kmlText) {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(kmlText, "text/xml");
-      const placemarks = xmlDoc.getElementsByTagName("Placemark");
-
-      if (placemarks.length === 0) {
-        alert("Lỗi: Không tìm thấy điểm bưu cục nào trong KML!");
-        return;
-      }
-
-      let uploadBatch = [];
-      const batchTimestamp = new Date().toISOString();
-
-      for (let i = 0; i < placemarks.length; i++) {
-        const p = placemarks[i];
-        const name = p.getElementsByTagName("name")[0]?.textContent.trim() || `BC-${i+1}`;
-        const desc = p.getElementsByTagName("description")[0]?.textContent || "";
-
-        let code = desc.match(/Mã TTNK(?:\s*网点)?:\s*([A-Za-z0-9_-]+)/i)?.[1] || name.match(/([0-9]{3}[A-Z][0-9]{2})/)?.[1] || `BC-${i+1}`;
-        const carrier = detectCarrier(name, desc, '');
-
-        let provId = "HNI";
-        const provMatch = name.match(/\(([A-Za-zĐđ]+)\)/);
-        if (provMatch && PROV_MAPPING[provMatch[1].toUpperCase()]) {
-          provId = PROV_MAPPING[provMatch[1].toUpperCase()];
-        }
-
-        let lat = null, lng = null;
-        const dinhVi = desc.match(/Định vị:\s*([^<\n\r]+)/i)?.[1];
-        if (dinhVi) {
-          const dec = dinhVi.match(/([0-9]{2}\.[0-9]+)[,\s]+([1][0][0-9]{1}\.[0-9]+)/);
-          if (dec) {
-            lat = parseFloat(dec[1]);
-            lng = parseFloat(dec[2]);
+          if (!rawProv) {
+            const m = name.match(/\(([A-Za-zĐđ]+)\)/);
+            if (m && PROV_MAPPING[m[1].toUpperCase()]) rawProv = PROV_MAPPING[m[1].toUpperCase()];
+          } else if (PROV_MAPPING[rawProv]) {
+            rawProv = PROV_MAPPING[rawProv];
           }
-        }
-        if (!lat) {
-          const coords = p.getElementsByTagName("coordinates")[0]?.textContent.trim().split(/[\s,]+/);
-          if (coords && coords.length >= 2) {
-            lng = parseFloat(coords[0]);
-            lat = parseFloat(coords[1]);
+
+          const latVal = parseFloat(getField(['Vĩ độ', 'lat', 'latitude']));
+          const lngVal = parseFloat(getField(['Kinh độ', 'lng', 'longitude']));
+          const address = String(getField(['Địa chỉ', 'address']) || '').trim();
+          const ordersVal = parseFloat(String(getField(['Đơn/ngày', 'sản lượng', 'orders'])).replace(/,/g, ''));
+          const trucksVal = parseInt(getField(['Số xe', 'trucks']));
+
+          if (!VALID_PROVINCE_CODES.has(rawProv)) {
+            rejectedOutOfBounds++;
+            return;
           }
-        }
 
-        const address = desc.match(/Địa chỉ(?:\s*地址)?:\s*([^<]+)/i)?.[1]?.trim() || "";
-        const orders = parseFloat(desc.match(/TB đơn[^:]*:\s*([0-9,.]+)/i)?.[1]?.replace(/,/g, ''));
+          const hasCoord = !isNaN(latVal) && !isNaN(lngVal);
 
-        if (VALID_PROVINCE_CODES.has(provId)) {
           uploadBatch.push({
             id: `${carrier}_${code}`,
             code: code,
             name: name,
             carrier: carrier,
-            province_id: provId,
-            lat: lat,
-            lng: lng,
+            province_id: rawProv,
+            lat: hasCoord ? latVal : null,
+            lng: hasCoord ? lngVal : null,
             address: address,
-            daily_orders: !isNaN(orders) ? orders : null,
-            trucks: null,
+            daily_orders: !isNaN(ordersVal) ? ordersVal : null,
+            trucks: !isNaN(trucksVal) ? trucksVal : null,
             updated_at: batchTimestamp
           });
-        }
-      }
+          accepted++;
+        });
 
-      if (supabaseClient && uploadBatch.length > 0) {
+        if (uploadBatch.length === 0) {
+          alert(`KHÔNG CÓ DÒNG NÀO HỢP LỆ!\n- Tổng số dòng đọc được: ${rows.length}\n- Bị loại do sai/thiếu Mã tỉnh (25 tỉnh miền Bắc): ${rejectedOutOfBounds}`);
+          return;
+        }
+
+        if (!supabaseClient) {
+          alert("Lỗi: Chưa kết nối được với máy chủ Supabase!");
+          return;
+        }
+
         for (let i = 0; i < uploadBatch.length; i += 500) {
           const chunk = uploadBatch.slice(i, i + 500);
           await supabaseUpsertSafe(chunk);
         }
-      }
 
-      await loadDataFromCloud();
-      alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã cập nhật thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
+        await loadDataFromCloud();
+        alert(`ĐỒNG BỘ CLOUD HOÀN TẤT!\n- Đã cập nhật thành công: ${accepted} bưu cục lên máy chủ Supabase.\n- Bị loại: ${rejectedOutOfBounds}`);
+      } catch (err) {
+        console.error("Lỗi nhập file:", err);
+        alert("LỖI KHI NHẬP FILE:\n" + (err.message || JSON.stringify(err)));
+      }
+    }
+
+    async function parseAndImportKML(kmlText) {
+      try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(kmlText, "text/xml");
+        const placemarks = xmlDoc.getElementsByTagName("Placemark");
+
+        if (placemarks.length === 0) {
+          alert("Lỗi: Không tìm thấy điểm bưu cục nào trong KML!");
+          return;
+        }
+
+        let uploadBatch = [];
+        const batchTimestamp = new Date().toISOString();
+
+        for (let i = 0; i < placemarks.length; i++) {
+          const p = placemarks[i];
+          const name = p.getElementsByTagName("name")[0]?.textContent.trim() || `BC-${i+1}`;
+          const desc = p.getElementsByTagName("description")[0]?.textContent || "";
+
+          let code = desc.match(/Mã TTNK(?:\s*网点)?:\s*([A-Za-z0-9_-]+)/i)?.[1] || name.match(/([0-9]{3}[A-Z][0-9]{2})/)?.[1] || `BC-${i+1}`;
+          const carrier = detectCarrier(name, desc, '');
+
+          let provId = "HNI";
+          const provMatch = name.match(/\(([A-Za-zĐđ]+)\)/);
+          if (provMatch && PROV_MAPPING[provMatch[1].toUpperCase()]) {
+            provId = PROV_MAPPING[provMatch[1].toUpperCase()];
+          }
+
+          let lat = null, lng = null;
+          const dinhVi = desc.match(/Định vị:\s*([^<\n\r]+)/i)?.[1];
+          if (dinhVi) {
+            const dec = dinhVi.match(/([0-9]{2}\.[0-9]+)[,\s]+([1][0][0-9]{1}\.[0-9]+)/);
+            if (dec) {
+              lat = parseFloat(dec[1]);
+              lng = parseFloat(dec[2]);
+            }
+          }
+          if (!lat) {
+            const coords = p.getElementsByTagName("coordinates")[0]?.textContent.trim().split(/[\s,]+/);
+            if (coords && coords.length >= 2) {
+              lng = parseFloat(coords[0]);
+              lat = parseFloat(coords[1]);
+            }
+          }
+
+          const address = desc.match(/Địa chỉ(?:\s*地址)?:\s*([^<]+)/i)?.[1]?.trim() || "";
+          const orders = parseFloat(desc.match(/TB đơn[^:]*:\s*([0-9,.]+)/i)?.[1]?.replace(/,/g, ''));
+
+          if (VALID_PROVINCE_CODES.has(provId)) {
+            uploadBatch.push({
+              id: `${carrier}_${code}`,
+              code: code,
+              name: name,
+              carrier: carrier,
+              province_id: provId,
+              lat: lat,
+              lng: lng,
+              address: address,
+              daily_orders: !isNaN(orders) ? orders : null,
+              trucks: null,
+              updated_at: batchTimestamp
+            });
+          }
+        }
+
+        if (supabaseClient && uploadBatch.length > 0) {
+          for (let i = 0; i < uploadBatch.length; i += 500) {
+            const chunk = uploadBatch.slice(i, i + 500);
+            await supabaseUpsertSafe(chunk);
+          }
+        }
+
+        await loadDataFromCloud();
+        alert(`ĐÃ TẢI LÊN CLOUD!\n- Đã cập nhật thành công: ${uploadBatch.length} bưu cục lên máy chủ trực tuyến.`);
+      } catch (err) {
+        console.error("Lỗi nhập KML:", err);
+        alert("LỖI KHI NHẬP FILE KML:\n" + (err.message || JSON.stringify(err)));
+      }
     }
 
     window.onload = initMap;
